@@ -1,0 +1,56 @@
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+
+@theme {
+  /* paper with a cool green-grey cast; ink is deep olive-charcoal */
+  --color-paper: #f3f5f2;
+  --color-card: #fdfdfc;
+  --color-ink: #23281f;
+  --color-ink-soft: #5c6357;
+  --color-line: #dde1da;
+
+  --color-pine: #1e5c48;
+  --color-pine-soft: #e3ede8;
+
+  /* severity tokens — always paired with weight/border, never colour alone */
+  --color-act: #a1301f;
+  --color-act-bg: #f8ece9;
+  --color-watch: #7c5c0e;
+  --color-watch-bg: #f6f0e0;
+  --color-info: #56605a;
+  --color-info-bg: #eef0ed;
+
+  --font-display: "Bricolage Grotesque Variable", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Inter Variable", "Segoe UI", system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-pine);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes tick-sweep {
+  from { stroke-dashoffset: 0; }
+}

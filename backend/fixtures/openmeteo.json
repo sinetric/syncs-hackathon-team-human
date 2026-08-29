@@ -1,0 +1,14 @@
+[
+  {
+    "uid": "openmeteo:demo-uni-rain",
+    "kind": "weather",
+    "title": "Rain likely near Uni (75%)",
+    "body": "75% chance of rain this evening around Broadway. An umbrella beats a wet walk home.",
+    "lat": -33.8836,
+    "lng": 151.1997,
+    "radius_m": 3000,
+    "valid_from_offset_mins": 60,
+    "valid_to_offset_mins": 300,
+    "source_url": "https://open-meteo.com"
+  }
+]

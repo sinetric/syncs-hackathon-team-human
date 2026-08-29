@@ -4,6 +4,7 @@ requests
 httpx
 pydantic
 python-dotenv
+tzdata          # IANA zoneinfo data on Windows (Australia/Sydney)
 
 # Optional — only needed when USE_LLM=1 (pipeline/llm.py).
 # torch installs the CPU build by default on Windows/macOS/Linux x86.

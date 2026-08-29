@@ -1,0 +1,14 @@
+{
+  "name": "know-ahead",
+  "private": true,
+  "version": "0.2.0",
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,blue \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && python main.py",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "smoke": "cd backend && python smoke_test_v1.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

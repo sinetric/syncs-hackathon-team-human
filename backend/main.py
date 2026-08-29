@@ -35,6 +35,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi import HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 from config import (
     BACKGROUND_MONITOR_INTERVAL_S,
     CORS_ORIGINS,
@@ -42,10 +46,13 @@ from config import (
     LLM_MODEL_ID,
     LLM_WARMUP,
     USE_LLM,
+    assert_live_keys_present,
 )
 from pipeline.run import run_pipeline_for_location
-from routes import locations, monitor
+from routes import api_v1, locations, monitor
 from store import load_locations, save_pulse
+
+assert_live_keys_present()
 
 
 async def _monitor_loop() -> None:
@@ -87,6 +94,32 @@ app.add_middleware(
 
 app.include_router(locations.router)
 app.include_router(monitor.router)
+app.include_router(api_v1.router)
+
+
+# Contract error envelope: { "error": { "code": "...", "message": "..." } }
+@app.exception_handler(HTTPException)
+async def http_exception_envelope(request: Request, exc: HTTPException):
+    if isinstance(exc.detail, dict) and "code" in exc.detail:
+        error = exc.detail
+    else:
+        error = {"code": "http_error", "message": str(exc.detail)}
+    return JSONResponse(status_code=exc.status_code, content={"error": error})
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_envelope(request: Request, exc: RequestValidationError):
+    first = exc.errors()[0] if exc.errors() else {}
+    where = ".".join(str(part) for part in first.get("loc", []))
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "validation_error",
+                "message": f"{where}: {first.get('msg', 'invalid request')}",
+            }
+        },
+    )
 
 
 @app.get("/health", tags=["meta"])

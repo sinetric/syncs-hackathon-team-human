@@ -13,6 +13,7 @@ node_modules/
 npm-debug.log*
 
 # Build files
+frontend/dist/
 
 # IDE
 

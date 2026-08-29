@@ -155,3 +155,170 @@ class DecisionRequest(BaseModel):
     longitude: float
     question: str               # e.g. "Should I renew my lease?"
     lease_end_date: date | None = None
+
+
+# ---------------------------------------------------------------------------
+# v1 contract models (docs/api-contract.md) — field-for-field with the doc.
+# ---------------------------------------------------------------------------
+
+
+def _new_id(prefix: str) -> str:
+    return f"{prefix}_{uuid.uuid4().hex[:12]}"
+
+
+class Place(BaseModel):
+    id: str = Field(default_factory=lambda: _new_id("plc"))
+    label: str
+    address: str
+    lat: float
+    lng: float
+
+
+class PlaceCreate(BaseModel):
+    label: str = Field(min_length=1, max_length=60)
+    address: str = Field(min_length=1, max_length=200)
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+
+
+class TravelMode(str, Enum):
+    transit = "transit"
+    drive = "drive"
+    walk = "walk"
+
+
+class Weekday(str, Enum):
+    mon = "mon"
+    tue = "tue"
+    wed = "wed"
+    thu = "thu"
+    fri = "fri"
+    sat = "sat"
+    sun = "sun"
+
+
+class Routine(BaseModel):
+    id: str = Field(default_factory=lambda: _new_id("rtn"))
+    name: str
+    origin_id: str
+    dest_id: str
+    days: list[Weekday]
+    depart_local_time: str      # "HH:MM" local Australia/Sydney
+    mode: TravelMode
+
+
+class RoutineCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+    origin_id: str
+    dest_id: str
+    days: list[Weekday] = Field(min_length=1)
+    depart_local_time: str = Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    mode: TravelMode
+
+
+class AlertKind(str, Enum):
+    transport_disruption = "transport_disruption"
+    roadwork = "roadwork"
+    incident = "incident"
+    weather = "weather"
+    construction = "construction"
+    reminder = "reminder"
+    advice = "advice"
+
+
+class Severity(str, Enum):
+    info = "info"
+    watch = "watch"
+    act = "act"
+
+
+class AlertImpact(BaseModel):
+    delay_minutes: int | None = None
+    confidence: float
+
+
+class AlertAffects(BaseModel):
+    routine_ids: list[str] = []
+    place_ids: list[str] = []
+    leg_index: int | None = None
+
+
+class AlertGeo(BaseModel):
+    lat: float
+    lng: float
+    radius_m: int
+
+
+class AlertAction(BaseModel):
+    type: str                   # "leave_earlier" | "reroute" | ...
+    label: str
+    payload: dict = Field(default_factory=dict)
+
+
+class AlertSource(BaseModel):
+    name: str
+    url: str | None = None
+    fetched_at: datetime
+
+
+class Alert(BaseModel):
+    id: str
+    kind: AlertKind
+    severity: Severity
+    title: str
+    body: str
+    impact: AlertImpact
+    affects: AlertAffects
+    valid_from: datetime
+    valid_to: datetime
+    geo: AlertGeo | None = None
+    actions: list[AlertAction] = []
+    source: AlertSource
+
+
+class LegMode(str, Enum):
+    walk = "walk"
+    train = "train"
+    bus = "bus"
+    lightrail = "lightrail"
+    ferry = "ferry"
+    drive = "drive"
+
+
+class JourneyLeg(BaseModel):
+    index: int
+    mode: LegMode
+    from_: str = Field(alias="from")
+    to: str
+    depart_at: datetime
+    arrive_at: datetime
+    line: str | None = None
+    duration_minutes: int
+
+    model_config = {"populate_by_name": True}
+
+
+class Fare(BaseModel):
+    currency: str = "AUD"
+    estimate_cents: int
+    basis: str                  # e.g. "opal_adult_offpeak" — always an estimate
+
+
+class ChecklistItem(BaseModel):
+    id: str
+    label: str
+    reason: str
+
+
+class TripMode(str, Enum):
+    long = "long"               # > 60 minutes
+    short = "short"
+
+
+class JourneyPreview(BaseModel):
+    duration_minutes: int
+    trip_mode: TripMode
+    legs: list[JourneyLeg]
+    fare: Fare
+    checklist: list[ChecklistItem]
+    alerts: list[Alert]

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import json
 
-from config import LOCATIONS_FILE, PULSE_FILE, SNAPSHOT_FILE
-from models import SavedLocation
+from config import LOCATIONS_FILE, PLACES_FILE, PULSE_FILE, ROUTINES_FILE, SNAPSHOT_FILE
+from models import Place, Routine, SavedLocation
 
 # ---------------------------------------------------------------------------
 # Saved locations
@@ -56,6 +56,43 @@ def clear_snapshot() -> None:
 # ---------------------------------------------------------------------------
 # Proactive "pulse"  (location id -> latest MonitorResult, as a dict)
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# v1 contract: places + routines (docs/api-contract.md)
+# ---------------------------------------------------------------------------
+
+
+def load_places() -> list[Place]:
+    if not PLACES_FILE.exists():
+        return []
+    return [Place(**item) for item in json.loads(PLACES_FILE.read_text())]
+
+
+def save_places(places: list[Place]) -> None:
+    PLACES_FILE.write_text(
+        json.dumps([p.model_dump(mode="json") for p in places], indent=2)
+    )
+
+
+def get_place(place_id: str) -> Place | None:
+    return next((p for p in load_places() if p.id == place_id), None)
+
+
+def load_routines() -> list[Routine]:
+    if not ROUTINES_FILE.exists():
+        return []
+    return [Routine(**item) for item in json.loads(ROUTINES_FILE.read_text())]
+
+
+def save_routines(routines: list[Routine]) -> None:
+    ROUTINES_FILE.write_text(
+        json.dumps([r.model_dump(mode="json") for r in routines], indent=2)
+    )
+
+
+def get_routine(routine_id: str) -> Routine | None:
+    return next((r for r in load_routines() if r.id == routine_id), None)
 
 
 def load_pulse() -> dict[str, dict]:

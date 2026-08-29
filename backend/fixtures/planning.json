@@ -1,0 +1,14 @@
+[
+  {
+    "uid": "planning:DA-2026-01187",
+    "kind": "construction",
+    "title": "6-storey apartment block approved 200 m from Home",
+    "body": "DA-2026/01187: demolition and construction of a 6-storey residential building with basement parking on Illawarra Rd. Work hours 7am-5pm weekdays.",
+    "lat": -33.9095,
+    "lng": 151.1540,
+    "radius_m": 400,
+    "valid_from_offset_mins": -43200,
+    "valid_to_offset_mins": 525600,
+    "source_url": "https://www.planningportal.nsw.gov.au"
+  }
+]

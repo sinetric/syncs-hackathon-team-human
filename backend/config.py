@@ -33,6 +33,59 @@ SNAPSHOT_FILE = DATA_DIR / "last_snapshot.json"          # for change detection
 PULSE_FILE = DATA_DIR / "pulse.json"                     # latest proactive result per location
 SEED_EVENTS_FILE = DATA_DIR / "seed_planning_events.json"
 
+# v1 contract storage (docs/api-contract.md)
+PLACES_FILE = DATA_DIR / "places.json"
+ROUTINES_FILE = DATA_DIR / "routines.json"
+DISMISSED_FILE = DATA_DIR / "dismissed_alerts.json"
+
+FIXTURES_DIR = BACKEND_DIR / "fixtures"
+
+# ---------------------------------------------------------------------------
+# v1 API (docs/api-contract.md)
+# ---------------------------------------------------------------------------
+
+APP_VERSION = "0.2.0"
+APP_TZ = "Australia/Sydney"
+
+# DEMO_MODE=true serves every source adapter from fixtures/*.json — fully
+# offline, no keys needed. This is the default so `python main.py` just works.
+DEMO_MODE = os.environ.get("DEMO_MODE", "true").strip().lower() in ("1", "true", "yes")
+
+# Per-source raw-response cache TTL (seconds). Upstreams are never hit more
+# than once per TTL regardless of request volume.
+SOURCE_CACHE_TTL_S = int(os.environ.get("SOURCE_CACHE_TTL_S", "120"))
+
+# Routine departure window for alert matching: minutes before/after depart time.
+DEPART_WINDOW_BEFORE_MIN = int(os.environ.get("DEPART_WINDOW_BEFORE_MIN", "30"))
+DEPART_WINDOW_AFTER_MIN = int(os.environ.get("DEPART_WINDOW_AFTER_MIN", "90"))
+
+# Corridor half-width for "is this event on my route" matching (v1: sampled
+# straight line between origin and destination — see alerts/matcher.py).
+CORRIDOR_RADIUS_M = int(os.environ.get("CORRIDOR_RADIUS_M", "800"))
+
+# Upstream API keys — only required when DEMO_MODE=false.
+TFNSW_API_KEY = os.environ.get("TFNSW_API_KEY", "")
+
+REQUIRED_LIVE_KEYS = {
+    "TFNSW_API_KEY": "Transport for NSW Open Data (https://opendata.transport.nsw.gov.au)",
+}
+
+
+def assert_live_keys_present() -> None:
+    """Fail loudly at boot if DEMO_MODE is off and a required key is missing."""
+    if DEMO_MODE:
+        return
+    missing = [name for name in REQUIRED_LIVE_KEYS if not os.environ.get(name)]
+    if missing:
+        lines = "\n".join(
+            f"  {name}  — get one at: {REQUIRED_LIVE_KEYS[name]}" for name in missing
+        )
+        raise RuntimeError(
+            "DEMO_MODE is false but required API keys are missing:\n"
+            f"{lines}\n"
+            "Set them in backend/.env (see .env.example), or run with DEMO_MODE=true."
+        )
+
 # ---------------------------------------------------------------------------
 # Pipeline tunables
 # ---------------------------------------------------------------------------
