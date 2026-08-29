@@ -184,7 +184,32 @@ The persona above (works-from-home, lease expiring in 2 months) is the demo user
 
 ---
 
-## 8. Guardrails — what NOT to build
+## 8. Reliability — AI-primary, code safety-net
+
+The AI produces the impact ratings and explanation. `impact.py` is the safety net that keeps a blank or fabricated card off the screen. Contract:
+
+```python
+scored = impact.score_all(events, user_ctx)      # cheap, runs every request
+try:
+    ai = call_claude(events, user_ctx)           # AI is primary
+    result = ai if impact.trustworthy(ai, events, scored) else impact.fallback(scored)
+except (Timeout, JSONDecodeError, APIError):
+    result = impact.fallback(scored)             # AI unavailable
+```
+
+Two failure modes, handled differently:
+- **AI unavailable** (timeout / error / bad JSON) → caught, `fallback()` renders deterministic scores.
+- **AI hallucinating** (invented event, altered distance) → `find_issues()` compares the AI answer against the verified facts. To *catch* this the score must already exist, so `score_all()` runs every time as a silent validator; the user only ever sees it when the check fails.
+
+`find_issues()` checks: every `event_id` the AI cites exists in the verified input, and any distance it reports matches `geo.py`'s (distances are given, not derived — a "corrected" one means fabrication). Optional third check flags a wild rating divergence (formula says High, AI says None).
+
+Fallback output is honest: `confidence: "low"`, `degraded: true`, templated language rather than invented detail.
+
+**This is also a demo asset.** Add a hidden toggle that forces the AI call to fail, and you can show the guardrail catching a fabricated event live — a stronger judge answer than merely claiming it.
+
+---
+
+## 9. Guardrails — what NOT to build
 
 - ❌ PostGIS / Postgres — Haversine in Python is enough.
 - ❌ Auth, accounts, user management.
