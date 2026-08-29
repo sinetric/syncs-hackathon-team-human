@@ -39,6 +39,9 @@ from config import (
     BACKGROUND_MONITOR_INTERVAL_S,
     CORS_ORIGINS,
     ENABLE_BACKGROUND_MONITOR,
+    LLM_MODEL_ID,
+    LLM_WARMUP,
+    USE_LLM,
 )
 from pipeline.run import run_pipeline_for_location
 from routes import locations, monitor
@@ -58,6 +61,11 @@ async def _monitor_loop() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if USE_LLM and LLM_WARMUP:
+        from pipeline import llm
+
+        llm.warmup()
+
     task = asyncio.create_task(_monitor_loop()) if ENABLE_BACKGROUND_MONITOR else None
     try:
         yield
@@ -83,7 +91,10 @@ app.include_router(monitor.router)
 
 @app.get("/health", tags=["meta"])
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "llm": {"enabled": USE_LLM, "model": LLM_MODEL_ID if USE_LLM else None},
+    }
 
 
 if __name__ == "__main__":

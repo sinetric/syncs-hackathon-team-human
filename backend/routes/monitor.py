@@ -31,10 +31,9 @@ def decision_mode(payload: DecisionRequest) -> MonitorResult:
         longitude=payload.longitude,
         lease_end_date=payload.lease_end_date,
     )
-    result = run_pipeline_for_location(ad_hoc)
-    if payload.question:
-        result.explanation = f"You asked: “{payload.question}”\n\n{result.explanation}"
-    return result
+    return run_pipeline_for_location(
+        ad_hoc, question=payload.question, changes_only=False
+    )
 
 
 @router.get("/pulse/{location_id}")

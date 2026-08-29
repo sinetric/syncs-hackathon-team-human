@@ -20,6 +20,7 @@ _CHANGE_LABEL = {
     "status_changed": "Status change on",
     "date_changed": "Rescheduled",
     "removed": "Removed",
+    "existing": "Nearby",
 }
 
 

@@ -75,6 +75,7 @@ class ChangeType(str, Enum):
     status_changed = "status_changed"
     date_changed = "date_changed"
     removed = "removed"
+    existing = "existing"       # not a change — a relevant event already present (decision mode)
 
 
 class Change(BaseModel):

@@ -48,3 +48,23 @@ BACKGROUND_MONITOR_INTERVAL_S = int(os.environ.get("BACKGROUND_MONITOR_INTERVAL_
 
 # Comma-separated CORS origins ("*" = allow all — fine for a hackathon demo).
 CORS_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "*").split(",")]
+
+# ---------------------------------------------------------------------------
+# Optional local LLM refinement (pipeline/llm.py)
+# ---------------------------------------------------------------------------
+
+# "1" routes the deterministic explanation + recommendation through a small
+# local Qwen model for warmer wording. Off by default: the deterministic path
+# is instant and needs no extra packages. Enabling it requires
+# `pip install transformers torch` and a one-time model download.
+USE_LLM = os.environ.get("USE_LLM", "0") == "1"
+
+# Any HF causal-LM id. Defaults to the smallest sensible Qwen instruct model so
+# it runs on modest CPUs. Bump to Qwen/Qwen2.5-1.5B-Instruct (or Qwen/Qwen3-1.7B)
+# for better wording if the machine has the RAM.
+LLM_MODEL_ID = os.environ.get("LLM_MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
+
+LLM_MAX_NEW_TOKENS = int(os.environ.get("LLM_MAX_NEW_TOKENS", "200"))
+
+# "1" loads the model at startup instead of on the first request.
+LLM_WARMUP = os.environ.get("LLM_WARMUP", "0") == "1"

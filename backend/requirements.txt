@@ -1,9 +1,11 @@
 fastapi
-requests
-pydantic
-pydantic-settings
-anthropic
 uvicorn[standard]
+requests
 httpx
-apscheduler        # background monitoring loop
+pydantic
 python-dotenv
+
+# Optional — only needed when USE_LLM=1 (pipeline/llm.py).
+# torch installs the CPU build by default on Windows/macOS/Linux x86.
+transformers>=4.51
+torch
