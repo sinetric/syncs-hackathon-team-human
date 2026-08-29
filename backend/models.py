@@ -1,7 +1,9 @@
 # Written by @sinetric & Claude, made with love <3 for SYNCS Hackathon 2026
 
+import uuid
 from datetime import date, datetime
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 # Defining enums for common types
@@ -16,6 +18,13 @@ class EventType(str, Enum):
     obstruction = "obstruction"
     emergency = "emergency"
 
+class SpecificEventType(str, Enum):
+    concert = "concert"
+    festival = "festival"
+    market = "market"
+    parade = "parade"
+    gathering = "gathering"
+
 
 class EventStatus(str, Enum):
     proposed = "proposed"
@@ -28,6 +37,7 @@ class EventStatus(str, Enum):
 class UrbanEvent(BaseModel):
     id: str                     # stable: f"{source}:{external_id}"
     type: EventType
+    specific_type: SpecificEventType | None = None # only exists for EventType = EventType.event
     title: str
     description: str = ""
     latitude: float
@@ -90,3 +100,57 @@ class ImpactReport(BaseModel): # we might be able to feed this into AI later
     overall: ImpactRating
     confidence: float           # 0..1 from evidence completeness
     evidence: list[str]         # deterministic bullet points feeding the LLM
+
+
+# ---------------------------------------------------------------------------
+# API / pipeline DTOs (used by main.py's MVP pipeline and FastAPI routes)
+# ---------------------------------------------------------------------------
+
+
+class SavedLocation(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    label: str                  # "home", "work", etc.
+    address: str
+    latitude: float
+    longitude: float
+    # user context that drives personalisation
+    lease_end_date: date | None = None
+    works_from_home: bool = False
+
+
+class SavedLocationCreate(BaseModel):
+    label: str
+    address: str
+    latitude: float
+    longitude: float
+    lease_end_date: date | None = None
+    works_from_home: bool = False
+
+
+class ImpactScore(BaseModel):
+    noise: ImpactRating
+    traffic: ImpactRating
+    dust: ImpactRating
+    duration_days: int | None = None
+
+
+class DetectedChange(BaseModel):
+    change_type: ChangeType
+    event: UrbanEvent
+    distance_m: float
+    impact: ImpactScore
+
+
+class MonitorResult(BaseModel):
+    location: SavedLocation
+    changes: list[DetectedChange]
+    explanation: str
+    recommendation: str
+
+
+class DecisionRequest(BaseModel):
+    address: str
+    latitude: float
+    longitude: float
+    question: str               # e.g. "Should I renew my lease?"
+    lease_end_date: date | None = None

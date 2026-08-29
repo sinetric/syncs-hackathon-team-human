@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 .env
 venv/
+.venv/
+
+# Backend runtime state (regenerated on first run)
+backend/data/
 
 # Node
 node_modules/
