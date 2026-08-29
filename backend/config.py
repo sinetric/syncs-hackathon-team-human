@@ -54,6 +54,7 @@ DEMO_MODE = os.environ.get("DEMO_MODE", "true").strip().lower() in ("1", "true",
 # Per-source raw-response cache TTL (seconds). Upstreams are never hit more
 # than once per TTL regardless of request volume.
 SOURCE_CACHE_TTL_S = int(os.environ.get("SOURCE_CACHE_TTL_S", "120"))
+GEOCODE_CACHE_TTL_S = int(os.environ.get("GEOCODE_CACHE_TTL_S", "86400"))
 
 # Routine departure window for alert matching: minutes before/after depart time.
 DEPART_WINDOW_BEFORE_MIN = int(os.environ.get("DEPART_WINDOW_BEFORE_MIN", "30"))
@@ -65,6 +66,16 @@ CORRIDOR_RADIUS_M = int(os.environ.get("CORRIDOR_RADIUS_M", "800"))
 
 # Upstream API keys — only required when DEMO_MODE=false.
 TFNSW_API_KEY = os.environ.get("TFNSW_API_KEY", "")
+
+# ---------------------------------------------------------------------------
+# Ask-AI engine (services/ai.py) — server-side only, never sent to the client
+# ---------------------------------------------------------------------------
+
+# Optional Hugging Face token: enables the hosted Qwen chat model. Without it
+# the service tries the local transformers Qwen, then falls back to a clearly
+# labelled rule-based summary of the live data.
+HF_TOKEN = os.environ.get("HF_TOKEN", "")
+HF_CHAT_MODEL = os.environ.get("HF_CHAT_MODEL", "Qwen/Qwen2.5-7B-Instruct-1M:fastest")
 
 REQUIRED_LIVE_KEYS = {
     "TFNSW_API_KEY": "Transport for NSW Open Data (https://opendata.transport.nsw.gov.au)",
@@ -110,7 +121,9 @@ CORS_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "*").split(","
 # local Qwen model for warmer wording. Off by default: the deterministic path
 # is instant and needs no extra packages. Enabling it requires
 # `pip install transformers torch` and a one-time model download.
-USE_LLM = os.environ.get("USE_LLM", "0") == "1"
+# Local Qwen is the reliable no-token fallback and is on by default. The model
+# is downloaded from Hugging Face once and then reused from its local cache.
+USE_LLM = os.environ.get("USE_LLM", "1") == "1"
 
 # Any HF causal-LM id. Defaults to the smallest sensible Qwen instruct model so
 # it runs on modest CPUs. Bump to Qwen/Qwen2.5-1.5B-Instruct (or Qwen/Qwen3-1.7B)

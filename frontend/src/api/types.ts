@@ -21,6 +21,13 @@ export interface PlaceCreate {
   lng: number;
 }
 
+export interface GeocodeResult {
+  address: string;
+  lat: number;
+  lng: number;
+  source: string;
+}
+
 export interface Routine {
   id: string;
   name: string;
@@ -96,4 +103,68 @@ export interface Health {
 
 export interface ApiError {
   error: { code: string; message: string };
+}
+
+export type FeatureKind =
+  | "parking"
+  | "construction"
+  | "roadwork"
+  | "venue"
+  | AlertKind;
+
+export interface MapFeature {
+  id: string;
+  kind: FeatureKind;
+  name: string;
+  lat: number;
+  lng: number;
+  tags: Record<string, string>;
+  alert?: Alert;
+  source: { name: string; url: string | null; fetched_at: string };
+}
+
+export interface MapFeatures {
+  data: MapFeature[];
+  overpass_available: boolean;
+  fetched_at: string;
+}
+
+export interface Weather {
+  observed: {
+    temperature_c: number | null;
+    precipitation_mm: number | null;
+    rain_mm: number | null;
+    wind_speed_kmh: number | null;
+    wind_gusts_kmh: number | null;
+    weather_code: number | null;
+    conditions: string;
+  };
+  derived: {
+    raining_now: boolean;
+    max_rain_probability_12h_pct: number | null;
+    max_wind_gust_12h_kmh: number | null;
+    signals: string[];
+    basis: string;
+  };
+  source: { name: string; url: string; fetched_at: string };
+}
+
+export interface ParkingSpot extends MapFeature {
+  distance_m: number;
+  probability: {
+    value_pct: number;
+    label: string;
+    basis: string;
+    reasons: string[];
+  };
+}
+
+export interface AskResponse {
+  answer: string;
+  factors: string[];
+  confidence_pct: number | null;
+  engine: "huggingface_api" | "local_qwen" | "rules";
+  model: string | null;
+  disclaimer: string;
+  context_used: string[];
 }

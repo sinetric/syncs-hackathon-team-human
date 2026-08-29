@@ -27,6 +27,17 @@ class OpenMeteoAdapter(SourceAdapter):
     display_name = "Open-Meteo"
     url = "https://open-meteo.com"
 
+    def events(self) -> list[SourceEvent]:
+        """Open-Meteo is keyless, so weather stays live even in DEMO_MODE —
+        real conditions must drive decisions, never a hardcoded forecast.
+        The fixture is only the offline fallback."""
+        try:
+            from alerts.cache import cached
+
+            return cached(self.name, self.fetch_live)
+        except Exception:
+            return super().events()
+
     def fetch_live(self) -> list[SourceEvent]:
         now = now_syd()
         events: list[SourceEvent] = []

@@ -13,12 +13,18 @@ All list endpoints return `{ "data": [...] }`. All errors return
 GET    /health                        -> { status, version, demo_mode }
 GET    /places                        -> Place[]
 POST   /places                        <- { label, address, lat, lng } -> Place
+GET    /geocode?address=              -> { address, lat, lng, source }
 DELETE /places/{id}
 GET    /routines                      -> Routine[]
 POST   /routines                      <- { name, origin_id, dest_id, days, depart_local_time, mode }
 GET    /alerts?routine_id=&place_id=&window_mins=180   -> Alert[]
 GET    /journeys/preview?origin_id=&dest_id=&depart_at=&mode=  -> JourneyPreview
 POST   /demo/seed                     -> seeds fixtures, returns counts
+
+GET    /map/features?lat=&lng=&radius_m=1500&kinds=   -> { data: MapFeature[], overpass_available, fetched_at }
+GET    /weather?lat=&lng=             -> Weather (503 weather_unavailable when Open-Meteo is down)
+GET    /parking?lat=&lng=&radius_m=1200 -> { data: ParkingSpot[], fetched_at } (503 parking_unavailable)
+POST   /ask                           <- { question, origin_id?, dest_id? } -> AskResponse
 ```
 
 ## Objects
@@ -59,6 +65,40 @@ POST   /demo/seed                     -> seeds fixtures, returns counts
   "fare": { "currency": "AUD", "estimate_cents": 452, "basis": "opal_adult_offpeak" },
   "checklist": [ { "id": "chk_water", "label": "Water bottle", "reason": "74 min trip" } ],
   "alerts": [ /* Alert[] scoped to this journey */ ] }
+```
+
+```jsonc
+// MapFeature — OSM object or geo-located alert, for the interactive map
+{ "id": "osm:node:123" /* or "alt_..." */,
+  "kind": "parking",       // parking | construction | roadwork | venue
+                           // | transport_disruption | incident | weather
+                           // | construction (alert) — alert features also
+                           // carry the full Alert under "alert"
+  "name": "Broadway car park", "lat": -33.88, "lng": 151.19,
+  "tags": { "access": "yes", "fee": "yes" },     // raw OSM tags (subset)
+  "alert": { /* Alert */ },                      // only on alert features
+  "source": { "name": "OpenStreetMap (Overpass)", "url": "...", "fetched_at": "..." } }
+
+// Weather — observed vs derived are strictly separated
+{ "observed": { "temperature_c": 18.2, "rain_mm": 0.0, "wind_speed_kmh": 21,
+                "wind_gusts_kmh": 38, "weather_code": 3, "conditions": "Overcast",
+                "precipitation_mm": 0.0 },
+  "derived": { "raining_now": false, "max_rain_probability_12h_pct": 40,
+               "max_wind_gust_12h_kmh": 45, "signals": ["..."],
+               "basis": "derived from Open-Meteo observations — an interpretation, not a warning product" },
+  "source": { "name": "Open-Meteo", "url": "...", "fetched_at": "..." } }
+
+// ParkingSpot — MapFeature (kind "parking") plus:
+{ "distance_m": 240,
+  "probability": { "value_pct": 78, "label": "Estimated parking probability",
+                   "basis": "heuristic estimate — no live occupancy source",
+                   "reasons": ["Paid parking — usually higher availability"] } }
+
+// AskResponse
+{ "answer": "…", "factors": ["…"], "confidence_pct": 82,
+  "engine": "huggingface_api" | "local_qwen" | "rules",
+  "model": "Qwen/Qwen2.5-7B-Instruct" /* null for rules */,
+  "disclaimer": "…", "context_used": ["alerts","weather","journey","parking"] }
 ```
 
 ## Severity rules

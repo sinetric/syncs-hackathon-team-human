@@ -23,8 +23,6 @@ export default function Places() {
   // add-place form
   const [label, setLabel] = useState("");
   const [address, setAddress] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
 
   // add-routine form
   const [rtnName, setRtnName] = useState("");
@@ -50,13 +48,10 @@ export default function Places() {
 
   const addPlace = () =>
     run(async () => {
-      const latNum = Number(lat);
-      const lngNum = Number(lng);
-      if (!label.trim() || !address.trim() || Number.isNaN(latNum) || Number.isNaN(lngNum)) {
-        throw new Error("A place needs a name, an address, and coordinates.");
-      }
-      await api.createPlace({ label: label.trim(), address: address.trim(), lat: latNum, lng: lngNum });
-      setLabel(""); setAddress(""); setLat(""); setLng("");
+      if (!label.trim() || !address.trim()) throw new Error("Give the place a name and street address.");
+      const resolved = await api.geocode(address.trim());
+      await api.createPlace({ label: label.trim(), address: resolved.address, lat: resolved.lat, lng: resolved.lng });
+      setLabel(""); setAddress("");
     });
 
   const addRoutine = () =>
@@ -121,14 +116,13 @@ export default function Places() {
               </button>
             ))}
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-3 space-y-2">
             <input placeholder="Name (e.g. Gym)" value={label} onChange={(e) => setLabel(e.target.value)} className={inputClass} />
-            <input placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
-            <input placeholder="Latitude" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} className={inputClass} />
-            <input placeholder="Longitude" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} className={inputClass} />
+            <input placeholder="Street address, suburb or postcode" value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} autoComplete="street-address" />
+            <p className="px-1 text-xs text-ink-soft">We'll find the map location from the address when you save. © OpenStreetMap contributors.</p>
           </div>
           <button onClick={addPlace} disabled={busy} className="mt-3 min-h-11 w-full rounded-xl border border-pine font-medium text-pine">
-            Save place
+            {busy ? "Finding address…" : "Find address & save"}
           </button>
         </div>
       </section>
@@ -197,6 +191,33 @@ export default function Places() {
       </section>
 
       {formError && <ErrorNote message={formError} />}
+
+      <section>
+        <h2 className="display px-1 text-lg font-bold">Coming soon</h2>
+        <ul className="mt-2 space-y-2" aria-label="Planned features">
+          {[
+            { label: "Ticket photo wallet", note: "Snap your paper ticket, find it at the gate" },
+            { label: "Carriage position", note: "Board where the exit will be" },
+            { label: "Interstate parking rules", note: "Kerb sign decoder for unfamiliar cities" },
+            { label: "Fare caps", note: "Know when the rest of the week rides free" },
+            { label: "Security screening", note: "What to expect at big venues and airports" },
+          ].map((item) => (
+            <li
+              key={item.label}
+              aria-disabled="true"
+              className="flex items-center gap-3 rounded-2xl border border-line bg-card px-4 py-3 opacity-55"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{item.label}</p>
+                <p className="text-xs text-ink-soft">{item.note}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-info-bg px-2 py-0.5 text-xs font-medium text-info">
+                coming soon
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
