@@ -1,0 +1,30 @@
+[
+  {
+    "uid": "tfnsw:ems-38291",
+    "kind": "transport_disruption",
+    "title": "T3 trains delayed up to 12 min",
+    "body": "Signal repairs at Sydenham. Allow extra travel time on the Bankstown line towards the city.",
+    "lat": -33.9142,
+    "lng": 151.1697,
+    "radius_m": 600,
+    "delay_minutes": 12,
+    "lines": ["T3"],
+    "valid_from_offset_mins": -60,
+    "valid_to_offset_mins": 1560,
+    "source_url": "https://transportnsw.info/alerts"
+  },
+  {
+    "uid": "tfnsw:ems-38304",
+    "kind": "transport_disruption",
+    "title": "Buses replace trains Bankstown to Sydenham this weekend",
+    "body": "Planned trackwork. Rail replacement buses run every 10 minutes and add travel time.",
+    "lat": -33.9179,
+    "lng": 151.1552,
+    "radius_m": 800,
+    "delay_minutes": 8,
+    "lines": ["T3"],
+    "valid_from_offset_mins": -120,
+    "valid_to_offset_mins": 2880,
+    "source_url": "https://transportnsw.info/alerts"
+  }
+]

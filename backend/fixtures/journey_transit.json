@@ -1,0 +1,6 @@
+[
+  { "mode": "walk",  "from": "{origin}",            "to": "Marrickville Station", "line": null, "duration_minutes": 8 },
+  { "mode": "bus",   "from": "Marrickville Station", "to": "Sydenham",            "line": "T3 rail replacement", "duration_minutes": 22 },
+  { "mode": "train", "from": "Sydenham",             "to": "Central",             "line": "T4", "duration_minutes": 18 },
+  { "mode": "walk",  "from": "Central",              "to": "{dest}",              "line": null, "duration_minutes": 14 }
+]

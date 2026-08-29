@@ -1,0 +1,27 @@
+[
+  {
+    "uid": "livetraffic:hz-77120",
+    "kind": "roadwork",
+    "title": "Footpath and lane closure on Broadway",
+    "body": "Crane work near Mountain St. Southern footpath closed, pedestrian detour in place.",
+    "lat": -33.8842,
+    "lng": 151.1952,
+    "radius_m": 300,
+    "valid_from_offset_mins": -180,
+    "valid_to_offset_mins": 4320,
+    "source_url": "https://www.livetraffic.com"
+  },
+  {
+    "uid": "livetraffic:hz-77168",
+    "kind": "incident",
+    "title": "Crash on Enmore Road near Simmons St",
+    "body": "One westbound lane blocked. Emergency services on site, expect short delays.",
+    "lat": -33.8985,
+    "lng": 151.1720,
+    "radius_m": 500,
+    "delay_minutes": 8,
+    "valid_from_offset_mins": -25,
+    "valid_to_offset_mins": 1500,
+    "source_url": "https://www.livetraffic.com"
+  }
+]
