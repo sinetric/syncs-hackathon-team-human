@@ -1,10 +1,10 @@
-# Sydney Pulse
+# Know Ahead
 
 > **Know what's changing around your life before it affects you.**
 
 ## 1. Overview
 
-**Sydney Pulse** is a personal urban intelligence system that continuously monitors changes around the places that matter to a user and translates fragmented city data into personalised, actionable insight.
+**Know Ahead** is a personal urban intelligence system that continuously monitors changes around the places that matter to a user and translates fragmented city data into personalised, actionable insight.
 
 Sydney is constantly changing:
 
@@ -18,7 +18,7 @@ Sydney is constantly changing:
 
 The information already exists, but it is scattered across many different sources. People often discover a change only after it has already affected them.
 
-Sydney Pulse brings these signals together and answers three questions:
+Know Ahead brings these signals together and answers three questions:
 
 > **What's changing? → Will it affect me? → What should I do?**
 
@@ -55,7 +55,7 @@ The information exists, but the user does not know they need to look for it.
 
 # 3. The Solution
 
-Sydney Pulse allows users to save locations that matter to them:
+Know Ahead allows users to save locations that matter to them:
 
 - 🏠 Home
 - 💼 Work
@@ -64,7 +64,7 @@ Sydney Pulse allows users to save locations that matter to them:
 - 🏪 Potential business locations
 - Other important locations
 
-Sydney Pulse continuously monitors relevant urban signals around those locations.
+Know Ahead continuously monitors relevant urban signals around those locations.
 
 Instead of simply displaying raw information, it transforms the information into a personalised interpretation:
 
@@ -94,7 +94,7 @@ It asks:
 
 ---
 
-# 4. What Makes Sydney Pulse Different?
+# 4. What Makes Know Ahead Different?
 
 ## Existing apps
 
@@ -114,9 +114,9 @@ Examples:
 
 Each system provides a useful but narrow view.
 
-## Sydney Pulse
+## Know Ahead
 
-Sydney Pulse connects these pieces:
+Know Ahead connects these pieces:
 
 ```text
 Data
@@ -147,7 +147,7 @@ Knowing that the development is:
 
 is much more useful.
 
-Sydney Pulse connects the event to the user's circumstances.
+Know Ahead connects the event to the user's circumstances.
 
 ---
 
@@ -155,7 +155,7 @@ Sydney Pulse connects the event to the user's circumstances.
 
 ## A. Proactive Monitoring — "What Changed?"
 
-Sydney Pulse continuously watches the user's saved locations.
+Know Ahead continuously watches the user's saved locations.
 
 Example:
 
@@ -167,7 +167,7 @@ Example:
 
 🚨 **New development approval detected 180m from your home.**
 
-Sydney Pulse analyses the event and determines:
+Know Ahead analyses the event and determines:
 
 - What changed
 - How close it is
@@ -180,13 +180,13 @@ The user receives an explanation rather than being expected to discover and inte
 
 ### Key insight
 
-> **AI can answer questions when you ask. Sydney Pulse watches for the questions you didn't know you needed to ask.**
+> **AI can answer questions when you ask. Know Ahead watches for the questions you didn't know you needed to ask.**
 
 ---
 
 # 6. Decision Support — "Before You Commit"
 
-Sydney Pulse can help users make decisions about locations.
+Know Ahead can help users make decisions about locations.
 
 Example:
 
@@ -194,7 +194,7 @@ A user enters an address and asks:
 
 > **"Should I renew my lease?"**
 
-Sydney Pulse discovers:
+Know Ahead discovers:
 
 - 🏗️ Development — 200m away
 - 🚧 Road project — 600m away
@@ -209,7 +209,7 @@ It then evaluates potential effects:
 | Dust | 🟡 Medium |
 | Duration | 18 months |
 
-Sydney Pulse could respond:
+Know Ahead could respond:
 
 > **This construction is likely to overlap with your next lease. Investigate construction hours before renewing.**
 
@@ -237,7 +237,7 @@ Compare potential locations based on their expected future environment.
 
 A property that looks attractive today may have major construction planned nearby.
 
-Sydney Pulse helps reveal the difference between:
+Know Ahead helps reveal the difference between:
 
 > **What this location is like today**
 
@@ -270,7 +270,7 @@ Potential signals:
 
 ## 🌧️ Planning Your Day
 
-Sydney Pulse can combine current and upcoming conditions around important locations.
+Know Ahead can combine current and upcoming conditions around important locations.
 
 For example:
 
@@ -286,7 +286,7 @@ The goal is to provide context rather than simply another alert.
 
 # 8. The Product Philosophy
 
-Sydney Pulse is built around a simple principle:
+Know Ahead is built around a simple principle:
 
 > **People don't need more data. They need more context.**
 
@@ -296,7 +296,7 @@ The difficult part is connecting:
 
 **What happened → Where it happened → When it happens → How significant it is → Who it affects → What they should consider doing.**
 
-Sydney Pulse acts as the intelligence layer between public data and the individual.
+Know Ahead acts as the intelligence layer between public data and the individual.
 
 ---
 
@@ -424,13 +424,13 @@ Possible change types:
 - Construction started
 - Construction completed
 
-This is what turns Sydney Pulse from a static information aggregator into a monitoring system.
+This is what turns Know Ahead from a static information aggregator into a monitoring system.
 
 ---
 
 # 12. Geospatial Intelligence
 
-Once an event is detected, Sydney Pulse determines its relevance to the user's saved locations.
+Once an event is detected, Know Ahead determines its relevance to the user's saved locations.
 
 For example:
 
@@ -567,13 +567,13 @@ Different Impact
 Different Recommendation
 ```
 
-This is one of the central reasons Sydney Pulse is more than an alert system.
+This is one of the central reasons Know Ahead is more than an alert system.
 
 ---
 
 # 15. Prediction
 
-Sydney Pulse does not need to predict exactly what incident will happen.
+Know Ahead does not need to predict exactly what incident will happen.
 
 Instead:
 
@@ -622,7 +622,7 @@ The recommendation should be:
 - Evidence-based
 - Appropriately cautious
 
-Sydney Pulse should help users make decisions, not make decisions for them.
+Know Ahead should help users make decisions, not make decisions for them.
 
 ---
 
@@ -711,7 +711,7 @@ User enters their home address.
 
 ### Step 2
 
-Sydney Pulse scans nearby signals.
+Know Ahead scans nearby signals.
 
 ### Step 3
 
@@ -733,7 +733,7 @@ A map shows:
 
 ### Step 6
 
-Sydney Pulse explains:
+Know Ahead explains:
 
 > "A development approval was detected yesterday approximately 180m from your home."
 
@@ -755,7 +755,7 @@ The user asks:
 
 ### Step 9
 
-Sydney Pulse responds:
+Know Ahead responds:
 
 > "This construction is likely to overlap with your next lease. Investigate construction hours before renewing."
 
@@ -917,13 +917,13 @@ Construction-related activity
 Lease period overlap
 ```
 
-This makes Sydney Pulse more trustworthy.
+This makes Know Ahead more trustworthy.
 
 ---
 
 # 24. Trust and Uncertainty
 
-Sydney Pulse should distinguish between:
+Know Ahead should distinguish between:
 
 ### Known
 
@@ -951,7 +951,7 @@ without claiming:
 
 # 25. Competitive Positioning
 
-Sydney Pulse is not trying to replace:
+Know Ahead is not trying to replace:
 
 - Google Maps
 - Opal
@@ -963,7 +963,7 @@ Sydney Pulse is not trying to replace:
 Instead, it sits **above them** as a personal intelligence layer.
 
 ```text
-                 SYDNEY PULSE
+                 Know Ahead
                       │
           ┌───────────┼───────────┐
           ↓           ↓           ↓
@@ -985,7 +985,7 @@ The product's value comes from **connecting the signals**.
 
 ## One-liner
 
-> **Sydney Pulse tells you what's changing around the places that matter to you — and what those changes mean for your life.**
+> **Know Ahead tells you what's changing around the places that matter to you — and what those changes mean for your life.**
 
 ## Shorter tagline
 
@@ -997,7 +997,7 @@ The product's value comes from **connecting the signals**.
 
 ## Core insight
 
-> **AI answers questions. Sydney Pulse watches for the questions you didn't know you needed to ask.**
+> **AI answers questions. Know Ahead watches for the questions you didn't know you needed to ask.**
 
 ---
 
@@ -1005,17 +1005,17 @@ The product's value comes from **connecting the signals**.
 
 > **"Sydney is constantly changing, but people only see a snapshot of today. A development gets approved, construction begins, roads change, weather hits and events reshape neighbourhoods — but that information is scattered everywhere.**
 >
-> **Sydney Pulse continuously watches the places that matter to you, detects what's changing, connects the signals, predicts the potential impact on your life, and tells you what you should consider doing.**
+> **Know Ahead continuously watches the places that matter to you, detects what's changing, connects the signals, predicts the potential impact on your life, and tells you what you should consider doing.**
 >
 > **It could warn you about something affecting your day, or tell you about construction that could affect your home for the next 18 months.**
 >
-> **AI answers questions. Sydney Pulse watches for the questions you didn't know you needed to ask.**
+> **AI answers questions. Know Ahead watches for the questions you didn't know you needed to ask.**
 >
 > **We don't just tell you what's happening in Sydney. We tell you what it means for your life."**
 
 ### Final line
 
-> **Sydney Pulse — See what's coming. Understand the impact. Make better decisions.**
+> **Know Ahead — See what's coming. Understand the impact. Make better decisions.**
 
 ---
 
@@ -1039,11 +1039,11 @@ The information already exists, but it is scattered across planning portals, cou
 
 People usually discover these changes only after they affect them.
 
-**Sydney Pulse changes that.**
+**Know Ahead changes that.**
 
 Users save the places that matter to them — home, work, school, or somewhere they are considering moving to.
 
-Sydney Pulse continuously monitors what is changing around those locations.
+Know Ahead continuously monitors what is changing around those locations.
 
 It detects new signals, measures their proximity, connects related events, analyses potential impacts and translates everything into personalised recommendations.
 
@@ -1051,7 +1051,7 @@ Instead of:
 
 > "Development application approved 180m away."
 
-Sydney Pulse says:
+Know Ahead says:
 
 > "A development was approved 180m from your home. Construction is expected to continue for approximately 18 months and may create significant noise and moderate traffic disruption. This overlaps with your next lease period. Investigate construction hours before renewing."
 
@@ -1061,7 +1061,7 @@ That's the difference.
 
 And the most important part is that users don't need to know what to search for.
 
-**AI can answer questions when you ask. Sydney Pulse watches for the questions you didn't know you needed to ask.**
+**AI can answer questions when you ask. Know Ahead watches for the questions you didn't know you needed to ask.**
 
 ---
 
@@ -1154,7 +1154,7 @@ USER
 
              ↓
 
-SYDNEY PULSE
+Know Ahead
 Collect nearby signals
 
              ↓
@@ -1220,7 +1220,7 @@ A system that understands:
 
 The ultimate abstraction is:
 
-> **The city changes continuously. Sydney Pulse keeps you ahead of the change.**
+> **The city changes continuously. Know Ahead keeps you ahead of the change.**
 
 ---
 
@@ -1232,13 +1232,13 @@ Sydney changes constantly, but information about those changes is fragmented. Pe
 
 ### Solution
 
-Sydney Pulse continuously monitors locations important to users, detects changes, connects signals, analyses potential impact and provides personalised recommendations.
+Know Ahead continuously monitors locations important to users, detects changes, connects signals, analyses potential impact and provides personalised recommendations.
 
 ### Differentiation
 
 Existing systems primarily provide data or alerts.
 
-Sydney Pulse provides:
+Know Ahead provides:
 
 > **Data → Change Detection → Impact → Personalisation → Prediction → Action**
 
@@ -1246,17 +1246,17 @@ Sydney Pulse provides:
 
 **Proactive awareness.**
 
-Sydney Pulse identifies changes the user did not know they needed to ask about.
+Know Ahead identifies changes the user did not know they needed to ask about.
 
 ### Killer Demo
 
-A user enters their home, Sydney Pulse detects a new nearby development, analyses its potential impact, connects it to the user's lease decision and recommends an action.
+A user enters their home, Know Ahead detects a new nearby development, analyses its potential impact, connects it to the user's lease decision and recommends an action.
 
 ### Killer Line
 
-> **"AI answers questions. Sydney Pulse watches for the questions you didn't know you needed to ask."**
+> **"AI answers questions. Know Ahead watches for the questions you didn't know you needed to ask."**
 
 ### Final tagline
 
-> # Sydney Pulse
+> # Know Ahead
 > **See what's coming. Understand the impact. Make better decisions.**
