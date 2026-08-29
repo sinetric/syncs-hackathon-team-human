@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import type { Weather } from "../api/types";
+import type { Alert, Weather } from "../api/types";
 import AlertCard from "../components/AlertCard";
 import { ErrorNote, Skeleton, relativeTime, useFetch } from "../components/common";
 
 interface Props {
-  goJourney: () => void;
+  goJourney: (alert: Alert) => void;
   goPlaces: () => void;
 }
 
@@ -39,6 +39,9 @@ export default function Today({ goJourney, goPlaces }: Props) {
     return <ErrorNote message={alerts.error.message} onRetry={alerts.reload} />;
 
   const list = alerts.data ?? [];
+  const decision = list.find((alert) => alert.actions.some((action) => action.type === "reroute"))
+    ?? list.find((alert) => alert.severity === "act")
+    ?? list.find((alert) => alert.severity === "watch");
 
   if (list.length === 0) {
     const hasRoutines = (routines.data?.length ?? 0) > 0;
@@ -73,6 +76,24 @@ export default function Today({ goJourney, goPlaces }: Props) {
 
   return (
     <div className="space-y-3">
+      {decision && (
+        <section className="overflow-hidden rounded-2xl bg-ink p-4 text-white shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">Decision ahead</p>
+          <p className="display mt-1 text-lg font-bold">
+            {decision.impact.delay_minutes
+              ? `Plan for ${decision.impact.delay_minutes} extra minutes before you leave.`
+              : `Keep ${decision.title.toLowerCase()} in your plan.`}
+          </p>
+          <p className="mt-1 text-sm text-white/70">
+            Already checked against your next routine, current conditions and nearby obstacles.
+          </p>
+          {decision.actions.some((action) => action.type === "reroute") && (
+            <button onClick={() => goJourney(decision)} className="mt-3 min-h-10 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-ink">
+              See the prepared alternative
+            </button>
+          )}
+        </section>
+      )}
       {weather && (
         <p className="flex items-baseline justify-between px-1 text-sm">
           <span>
@@ -91,7 +112,7 @@ export default function Today({ goJourney, goPlaces }: Props) {
         {list.length} heads-up{list.length === 1 ? "" : "s"} for the next 3 hours
       </p>
       {list.map((alert) => (
-        <AlertCard key={alert.id} alert={alert} onReroute={goJourney} />
+        <AlertCard key={alert.id} alert={alert} onReroute={() => goJourney(alert)} />
       ))}
     </div>
   );

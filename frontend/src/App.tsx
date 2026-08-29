@@ -5,6 +5,7 @@ import MapScreen from "./screens/MapScreen";
 import Journey from "./screens/Journey";
 import Ask from "./screens/Ask";
 import Places from "./screens/Places";
+import type { Alert } from "./api/types";
 
 export type Tab = "today" | "map" | "journey" | "ask" | "places";
 
@@ -23,6 +24,7 @@ function tabFromHash(): Tab {
 
 export default function App() {
   const [tab, setTab] = useState<Tab>(tabFromHash);
+  const [rerouteAlert, setRerouteAlert] = useState<Alert | null>(null);
 
   useEffect(() => {
     const onHash = () => setTab(tabFromHash());
@@ -32,6 +34,11 @@ export default function App() {
 
   const go = (next: Tab) => {
     window.location.hash = `/${next}`;
+  };
+
+  const showAlternative = (alert: Alert) => {
+    setRerouteAlert(alert);
+    go("journey");
   };
 
   return (
@@ -46,16 +53,28 @@ export default function App() {
       </header>
 
       <main className="flex-1 px-4 pb-24">
-        {tab === "today" && <Today goJourney={() => go("journey")} goPlaces={() => go("places")} />}
-        {tab === "map" && <MapScreen />}
-        {tab === "journey" && <Journey />}
-        {tab === "ask" && <Ask />}
-        {tab === "places" && <Places />}
+        {/* Keep every screen mounted. This is a small in-app page cache: form
+            inputs, fetched results and scroll-story selections survive tab switches. */}
+        <section hidden={tab !== "today"} aria-hidden={tab !== "today"}>
+          <Today goJourney={showAlternative} goPlaces={() => go("places")} />
+        </section>
+        <section hidden={tab !== "map"} aria-hidden={tab !== "map"}>
+          <MapScreen />
+        </section>
+        <section hidden={tab !== "journey"} aria-hidden={tab !== "journey"}>
+          <Journey rerouteAlert={rerouteAlert} />
+        </section>
+        <section hidden={tab !== "ask"} aria-hidden={tab !== "ask"}>
+          <Ask />
+        </section>
+        <section hidden={tab !== "places"} aria-hidden={tab !== "places"}>
+          <Places />
+        </section>
       </main>
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 mx-auto max-w-[430px] border-t border-line bg-card/95 backdrop-blur"
+        className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[430px] border-t border-line bg-card/95 backdrop-blur"
       >
         <ul className="flex">
           {TABS.map((t) => (

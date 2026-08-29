@@ -21,6 +21,13 @@ export interface PlaceCreate {
   lng: number;
 }
 
+export interface GeocodeResult {
+  address: string;
+  lat: number;
+  lng: number;
+  source: string;
+}
+
 export interface Routine {
   id: string;
   name: string;

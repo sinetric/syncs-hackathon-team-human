@@ -24,9 +24,18 @@ def find_parking(
     now: datetime | None = None,
     nearby_event_count: int = 0,
     raining: bool = False,
+    timeout_s: int = 15,
+    max_mirrors: int | None = None,
 ) -> tuple[list[dict], bool]:
     """Return (parking spots sorted nearest-first, overpass_available)."""
-    features, available = fetch_features(lat, lng, radius_m, kinds=["parking"])
+    features, available = fetch_features(
+        lat,
+        lng,
+        radius_m,
+        kinds=["parking"],
+        timeout_s=timeout_s,
+        max_mirrors=max_mirrors,
+    )
     spots = []
     for f in features:
         distance = round(haversine_m(lat, lng, f["lat"], f["lng"]))

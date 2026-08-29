@@ -4,7 +4,7 @@
  * generated relative to "now" so the demo works on any day at any hour.
  */
 
-import type { Alert, JourneyPreview, Place, Routine } from "./types";
+import type { Alert, JourneyPreview, MapFeature, Place, Routine, TravelMode } from "./types";
 
 const mins = (n: number) => new Date(Date.now() + n * 60_000).toISOString();
 const hhmm = (n: number) =>
@@ -111,7 +111,44 @@ export function fixtureAlerts(): Alert[] {
   ];
 }
 
-export function fixtureJourney(): JourneyPreview {
+export function fixtureMapFeatures(): MapFeature[] {
+  const alertFeatures: MapFeature[] = fixtureAlerts()
+    .filter((alert) => alert.geo)
+    .map((alert) => ({
+      id: alert.id,
+      kind: alert.kind,
+      name: alert.title,
+      lat: alert.geo!.lat,
+      lng: alert.geo!.lng,
+      tags: {},
+      alert,
+      source: alert.source,
+    }));
+  const fetchedAt = new Date().toISOString();
+  return [
+    ...alertFeatures,
+    {
+      id: "osm_demo_parking",
+      kind: "parking",
+      name: "Marrickville Metro parking",
+      lat: -33.9089,
+      lng: 151.1729,
+      tags: { access: "customers", fee: "no", capacity: "450", opening_hours: "06:00-24:00" },
+      source: { name: "OpenStreetMap", url: "https://www.openstreetmap.org", fetched_at: fetchedAt },
+    },
+    {
+      id: "osm_demo_venue",
+      kind: "venue",
+      name: "Enmore Theatre",
+      lat: -33.8995,
+      lng: 151.1741,
+      tags: { operator: "TEG Live", access: "ticketed" },
+      source: { name: "OpenStreetMap", url: "https://www.openstreetmap.org", fetched_at: fetchedAt },
+    },
+  ];
+}
+
+export function fixtureJourney(mode: TravelMode = "transit"): JourneyPreview {
   const leg = (index: number, mode: JourneyLegMode, from: string, to: string, start: number, dur: number, line: string | null) => ({
     index,
     mode,
@@ -123,6 +160,29 @@ export function fixtureJourney(): JourneyPreview {
     duration_minutes: dur,
   });
   type JourneyLegMode = "walk" | "train" | "bus" | "lightrail" | "ferry" | "drive";
+  if (mode === "drive") {
+    return {
+      duration_minutes: 31,
+      trip_mode: "short",
+      legs: [leg(0, "drive", "Home", "Uni", 0, 31, "Road alternative")],
+      fare: { currency: "AUD", estimate_cents: 260, basis: "fuel_estimate" },
+      checklist: [{ id: "chk_fuel", label: "Fuel or battery", reason: "You're driving — check before you leave" }],
+      alerts: fixtureAlerts().filter((alert) => alert.kind === "roadwork"),
+    };
+  }
+  if (mode === "walk") {
+    return {
+      duration_minutes: 68,
+      trip_mode: "long",
+      legs: [leg(0, "walk", "Home", "Uni", 0, 68, null)],
+      fare: { currency: "AUD", estimate_cents: 0, basis: "free" },
+      checklist: [
+        { id: "chk_water", label: "Water bottle", reason: "68 min trip" },
+        { id: "chk_umbrella", label: "Umbrella", reason: "Rain is likely along the way" },
+      ],
+      alerts: fixtureAlerts().filter((alert) => alert.kind === "weather"),
+    };
+  }
   return {
     duration_minutes: 74,
     trip_mode: "long",

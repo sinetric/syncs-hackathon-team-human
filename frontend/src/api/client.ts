@@ -9,6 +9,7 @@
 import {
   fixtureAlerts,
   fixtureJourney,
+  fixtureMapFeatures,
   fixturePlaces,
   fixtureRoutines,
 } from "./fixtures";
@@ -16,6 +17,7 @@ import type {
   Alert,
   ApiError,
   AskResponse,
+  GeocodeResult,
   Health,
   JourneyPreview,
   MapFeatures,
@@ -64,6 +66,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 let fxPlaces = [...fixturePlaces];
 let fxRoutines = [...fixtureRoutines];
 const fxDelay = () => new Promise((r) => setTimeout(r, 250));
+const notifyPlacesChanged = () => {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("knowahead:places-changed"));
+};
+
+function distanceM(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const rad = (degrees: number) => degrees * Math.PI / 180;
+  const dLat = rad(bLat - aLat);
+  const dLng = rad(bLng - aLng);
+  const value = Math.sin(dLat / 2) ** 2
+    + Math.cos(rad(aLat)) * Math.cos(rad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 6_371_000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
 
 export const api = {
   async health(): Promise<Health> {
@@ -76,22 +90,39 @@ export const api = {
     return (await request<{ data: Place[] }>("/places")).data;
   },
 
+  async geocode(address: string): Promise<GeocodeResult> {
+    if (USE_FIXTURES) {
+      const match = fixturePlaces.find((place) =>
+        place.address.toLowerCase().includes(address.trim().toLowerCase())
+        || address.trim().toLowerCase().includes(place.address.toLowerCase()),
+      );
+      if (!match) throw new RequestError(404, "address_not_found", "Custom address lookup needs the backend running.");
+      return { address: match.address, lat: match.lat, lng: match.lng, source: "Offline fixture" };
+    }
+    return request(`/geocode?address=${encodeURIComponent(address)}`);
+  },
+
   async createPlace(payload: PlaceCreate): Promise<Place> {
     if (USE_FIXTURES) {
       const place = { ...payload, id: `plc_fx${Date.now()}` };
       fxPlaces.push(place);
+      notifyPlacesChanged();
       return place;
     }
-    return request("/places", { method: "POST", body: JSON.stringify(payload) });
+    const place = await request<Place>("/places", { method: "POST", body: JSON.stringify(payload) });
+    notifyPlacesChanged();
+    return place;
   },
 
   async deletePlace(id: string): Promise<void> {
     if (USE_FIXTURES) {
       fxPlaces = fxPlaces.filter((p) => p.id !== id);
       fxRoutines = fxRoutines.filter((r) => r.origin_id !== id && r.dest_id !== id);
+      notifyPlacesChanged();
       return;
     }
-    return request(`/places/${id}`, { method: "DELETE" });
+    await request(`/places/${id}`, { method: "DELETE" });
+    notifyPlacesChanged();
   },
 
   async listRoutines(): Promise<Routine[]> {
@@ -124,7 +155,7 @@ export const api = {
     depart_at?: string;
     mode?: TravelMode;
   }): Promise<JourneyPreview> {
-    if (USE_FIXTURES) return fxDelay().then(() => fixtureJourney());
+    if (USE_FIXTURES) return fxDelay().then(() => fixtureJourney(params.mode ?? "transit"));
     const search = new URLSearchParams({ origin_id: params.origin_id, dest_id: params.dest_id });
     if (params.depart_at) search.set("depart_at", params.depart_at);
     if (params.mode) search.set("mode", params.mode);
@@ -135,7 +166,14 @@ export const api = {
   // in backend demo mode, so fixtures mode degrades honestly instead of
   // faking map/weather data.
   async mapFeatures(params: { lat: number; lng: number; radius_m?: number; kinds?: string[] }): Promise<MapFeatures> {
-    if (USE_FIXTURES) return { data: [], overpass_available: false, fetched_at: new Date().toISOString() };
+    if (USE_FIXTURES) {
+      const radius = params.radius_m ?? 1500;
+      const data = fixtureMapFeatures().filter((feature) =>
+        distanceM(params.lat, params.lng, feature.lat, feature.lng) <= radius
+        && (!params.kinds?.length || params.kinds.includes(feature.kind)),
+      );
+      return { data, overpass_available: true, fetched_at: new Date().toISOString() };
+    }
     const search = new URLSearchParams({ lat: String(params.lat), lng: String(params.lng) });
     if (params.radius_m) search.set("radius_m", String(params.radius_m));
     if (params.kinds?.length) search.set("kinds", params.kinds.join(","));

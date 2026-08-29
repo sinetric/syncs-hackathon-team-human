@@ -22,6 +22,7 @@ from services import ai as ai_service
 from services.overpass import ALL_KINDS, fetch_features
 from services.parking import find_parking
 from services.weather import get_weather
+from services.geocoding import geocode_address
 from models import (
     Place,
     PlaceCreate,
@@ -55,6 +56,17 @@ def health():
 
 
 # -------------------------------------------------------------------- places
+
+
+@router.get("/geocode")
+def geocode(address: str = Query(min_length=3, max_length=200)):
+    try:
+        result = geocode_address(address)
+    except Exception as exc:  # upstream failures become a useful API error
+        raise _err(503, "geocoding_unavailable", "Address lookup is unavailable right now. Try again shortly.") from exc
+    if result is None:
+        raise _err(404, "address_not_found", "We couldn't find that Australian address. Add a suburb or postcode and try again.")
+    return result
 
 
 @router.get("/places")

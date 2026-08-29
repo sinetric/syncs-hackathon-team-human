@@ -22,7 +22,7 @@ import logging
 
 import requests
 
-from config import HF_CHAT_MODEL, HF_TOKEN
+from config import HF_CHAT_MODEL, HF_TOKEN, LLM_MODEL_ID
 from alerts import build_alerts
 from journeys import build_preview
 from models import Severity, TravelMode
@@ -54,7 +54,11 @@ _SYSTEM = (
 # ---------------------------------------------------------------------------
 
 
-def build_context(origin_id: str | None = None, dest_id: str | None = None) -> dict:
+def build_context(
+    origin_id: str | None = None,
+    dest_id: str | None = None,
+    question: str = "",
+) -> dict:
     now = now_syd()
     places = load_places()
     routines = load_routines()
@@ -97,13 +101,21 @@ def build_context(origin_id: str | None = None, dest_id: str | None = None) -> d
             "checklist": [c.label for c in preview.checklist],
         }
     target = dest or anchor
-    if target is not None:
+    wants_parking = any(word in question.casefold() for word in ("park", "parking", "car space"))
+    if target is not None and wants_parking:
         raining = bool(
             (context.get("weather") or {}).get("derived", {}).get("raining_now")
         )
         event_count = sum(1 for a in alerts if a.severity != Severity.info)
         spots, available = find_parking(
-            target.lat, target.lng, 1200, now, event_count, raining
+            target.lat,
+            target.lng,
+            1200,
+            now,
+            event_count,
+            raining,
+            timeout_s=3,
+            max_mirrors=1,
         )
         context["parking_near"] = target.label
         context["parking"] = (
@@ -128,7 +140,7 @@ def build_context(origin_id: str | None = None, dest_id: str | None = None) -> d
 
 
 def ask(question: str, origin_id: str | None = None, dest_id: str | None = None) -> dict:
-    context = build_context(origin_id, dest_id)
+    context = build_context(origin_id, dest_id, question)
     messages = [
         {"role": "system", "content": _SYSTEM},
         {
@@ -151,7 +163,7 @@ def ask(question: str, origin_id: str | None = None, dest_id: str | None = None)
 def _shape(parsed: dict, engine: str, context: dict) -> dict:
     model = {
         "huggingface_api": HF_CHAT_MODEL,
-        "local_qwen": "Qwen/Qwen2.5-0.5B-Instruct (local)",
+        "local_qwen": f"{LLM_MODEL_ID} (local Hugging Face model)",
         "rules": None,
     }[engine]
     return {
@@ -177,12 +189,21 @@ def _ask_hf(messages: list[dict]) -> dict | None:
     resp = requests.post(
         "https://router.huggingface.co/v1/chat/completions",
         headers={"Authorization": f"Bearer {HF_TOKEN}"},
-        json={"model": HF_CHAT_MODEL, "messages": messages, "max_tokens": 400, "temperature": 0.2},
-        timeout=30,
+        json={
+            "model": HF_CHAT_MODEL,
+            "messages": messages,
+            "max_tokens": 400,
+            "temperature": 0.2,
+            "stream": False,
+        },
+        timeout=(8, 45),
     )
     resp.raise_for_status()
     text = resp.json()["choices"][0]["message"]["content"]
-    return json.loads(_first_json_object(text))
+    parsed = json.loads(_first_json_object(text))
+    if not str(parsed.get("answer", "")).strip():
+        raise ValueError("Qwen returned an empty answer")
+    return parsed
 
 
 def _ask_local(messages: list[dict]) -> dict | None:

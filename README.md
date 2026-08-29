@@ -63,9 +63,10 @@ in `frontend/.env` and the UI renders from local fixtures with no backend.
 |---|---|---|---|
 | `DEMO_MODE` | backend | `true` | fixtures instead of live sources |
 | `TFNSW_API_KEY` | backend | — | required only when `DEMO_MODE=false`; free at [opendata.transport.nsw.gov.au](https://opendata.transport.nsw.gov.au) |
-| `HF_TOKEN` | backend | — | optional; enables hosted Qwen for Ask AI ([huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)), server-side only |
-| `USE_LLM` | backend | `0` | `1` runs Ask AI on the local transformers Qwen (needs `pip install transformers torch`; minutes per answer on CPU) |
+| `HF_TOKEN` | backend | — | optional; enables hosted Qwen for Ask AI ([huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)), server-side only; grant Inference Providers access |
+| `USE_LLM` | backend | `1` | local Hugging Face Qwen fallback; set `0` to disable it (first use downloads model weights; CPU answers can take minutes) |
 | `SOURCE_CACHE_TTL_S` | backend | `120` | per-source raw-response cache |
+| `GEOCODE_CACHE_TTL_S` | backend | `86400` | address lookup cache; public Nominatim is queried only on Save and must follow its usage policy |
 | `CORRIDOR_RADIUS_M` | backend | `800` | route-corridor match radius |
 | `CORS_ORIGINS` | backend | `*` | comma-separated origins |
 | `VITE_API_BASE_URL` | frontend | `http://localhost:8000` | backend origin |

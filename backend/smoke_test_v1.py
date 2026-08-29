@@ -16,6 +16,7 @@ os.environ["DEMO_MODE"] = "true"
 from fastapi.testclient import TestClient  # noqa: E402
 
 from main import app  # noqa: E402
+from routes import api_v1  # noqa: E402
 
 client = TestClient(app)
 
@@ -54,6 +55,22 @@ def test_places_crud():
     missing = client.delete(f"/api/v1/places/{place['id']}")
     assert missing.status_code == 404
     assert missing.json()["error"]["code"] == "place_not_found"
+
+
+def test_geocode_contract():
+    original = api_v1.geocode_address
+    api_v1.geocode_address = lambda address: {
+        "address": "1 Martin Place, Sydney NSW 2000, Australia",
+        "lat": -33.8679,
+        "lng": 151.2093,
+        "source": "OpenStreetMap Nominatim",
+    }
+    try:
+        response = client.get("/api/v1/geocode", params={"address": "1 Martin Place Sydney"})
+        assert response.status_code == 200
+        assert {"address", "lat", "lng", "source"} <= set(response.json())
+    finally:
+        api_v1.geocode_address = original
 
 
 def test_routines():

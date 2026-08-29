@@ -76,7 +76,12 @@ def _kind_of(tags: dict) -> str | None:
 
 
 def fetch_features(
-    lat: float, lng: float, radius_m: int = 1500, kinds: list[str] | None = None
+    lat: float,
+    lng: float,
+    radius_m: int = 1500,
+    kinds: list[str] | None = None,
+    timeout_s: int = _TIMEOUT_S,
+    max_mirrors: int | None = None,
 ) -> tuple[list[dict], bool]:
     """Return (features, available). `available=False` means Overpass could
     not be reached and the caller should say so rather than show nothing
@@ -89,21 +94,35 @@ def fetch_features(
     # round the cache key so tiny map pans reuse the same upstream response
     key = f"overpass:{round(lat, 3)}:{round(lng, 3)}:{radius_m}:{','.join(sorted(kinds))}"
     try:
-        return cached(key, lambda: _fetch(lat, lng, radius_m, kinds), ttl_s=_CACHE_TTL_S), True
-    except Exception:
-        log.exception("overpass unavailable")
+        return cached(
+            key,
+            lambda: _fetch(lat, lng, radius_m, kinds, timeout_s, max_mirrors),
+            ttl_s=_CACHE_TTL_S,
+        ), True
+    except Exception as exc:
+        # Availability is already returned to callers; avoid printing a full
+        # requests traceback for a normal third-party timeout.
+        log.warning("overpass unavailable: %s", exc)
         return [], False
 
 
-def _fetch(lat: float, lng: float, radius_m: int, kinds: list[str]) -> list[dict]:
+def _fetch(
+    lat: float,
+    lng: float,
+    radius_m: int,
+    kinds: list[str],
+    timeout_s: int = _TIMEOUT_S,
+    max_mirrors: int | None = None,
+) -> list[dict]:
     resp = None
     last_error: Exception | None = None
-    for url in OVERPASS_URLS:
+    urls = OVERPASS_URLS[:max_mirrors] if max_mirrors else OVERPASS_URLS
+    for url in urls:
         try:
             resp = requests.post(
                 url,
                 data={"data": _build_query(lat, lng, radius_m, kinds)},
-                timeout=_TIMEOUT_S,
+                timeout=timeout_s,
                 headers={"User-Agent": "KnowAhead-hackathon/0.3 (contact: repo issues)"},
             )
             resp.raise_for_status()

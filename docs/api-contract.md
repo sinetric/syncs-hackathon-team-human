@@ -13,6 +13,7 @@ All list endpoints return `{ "data": [...] }`. All errors return
 GET    /health                        -> { status, version, demo_mode }
 GET    /places                        -> Place[]
 POST   /places                        <- { label, address, lat, lng } -> Place
+GET    /geocode?address=              -> { address, lat, lng, source }
 DELETE /places/{id}
 GET    /routines                      -> Routine[]
 POST   /routines                      <- { name, origin_id, dest_id, days, depart_local_time, mode }
