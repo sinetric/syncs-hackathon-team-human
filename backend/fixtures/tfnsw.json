@@ -6,7 +6,7 @@
     "body": "Signal repairs at Sydenham. Allow extra travel time on the Bankstown line towards the city.",
     "lat": -33.9142,
     "lng": 151.1697,
-    "radius_m": 600,
+    "radius_m": 1600,
     "delay_minutes": 12,
     "lines": ["T3"],
     "valid_from_offset_mins": -60,
