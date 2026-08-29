@@ -13,7 +13,7 @@ The LLM only ever receives already-verified structured facts and turns them
 into plain-English explanation + recommendation. It never invents distances,
 dates, or event existence.
 
-NOTE ON DATA SOURCE:
+NOTE ON DATA SOURCE
 The NSW Planning Portal's live "Online DA Data API" requires a subscription
 key requested by email (not obtainable same-day). For the hackathon, the
 `fetch_planning_events()` function below is a drop-in adapter: it returns
