@@ -1,0 +1,340 @@
+# Ripple — MVP Part 0: Frozen Product and Data Contract
+
+**Status:** ready for team sign-off before implementation  
+**Hackathon scope:** one renter, one Marrickville home, one newly detected development, one personalised exposure change
+
+## 1. Product promise
+
+> **Ripple detects verified changes near a renter’s home, calculates how those changes overlap with their life, and explains the evidence early enough for them to act.**
+
+Suggested subtitle:
+
+> **Know how nearby change affects you.**
+
+## 2. Hero user and demonstration
+
+- **User:** Sarah, a renter in Marrickville.
+- **Home:** one fixed demonstration address, stored locally.
+- **Situation:** lease renewal is approaching.
+- **Default profile:** usually away during weekday work hours.
+- **Comparison profile:** usually home during weekday work hours.
+- **Detected change:** one real nearby planning/development record that is absent from the previous snapshot and present in the current snapshot.
+- **Proof moment:** switching Sarah’s presence profile changes her exposure result while the official record, distance and project stage remain unchanged.
+
+## 3. MVP boundaries
+
+### Build
+
+- one address;
+- planning/development records;
+- one reusable roadwork adapter if time permits;
+- map with home and event markers;
+- previous/current snapshot comparison;
+- deterministic distance and exposure calculations;
+- project stage, evidence, confidence and unknowns;
+- calm dashboard, alert and detail states;
+- watch/mute state stored locally;
+- optional AI-written explanation from already calculated facts.
+
+### Do not build
+
+- accounts or authentication;
+- multiple saved addresses;
+- native mobile application;
+- real push notifications;
+- weather, floods, entertainment events or general news;
+- property prices;
+- autonomous browsing of council websites;
+- an AI-generated impact score;
+- an AI instruction telling a user whether to sign or reject a lease.
+
+## 4. Ownership rule
+
+### Code establishes
+
+- event identity;
+- source and source URL;
+- coordinates;
+- project stage;
+- official dates;
+- distance;
+- user/event schedule overlap;
+- change status;
+- supported numeric estimates;
+- confidence inputs and missing evidence.
+
+### AI may only
+
+- shorten official descriptions;
+- explain computed values in plain language;
+- explain why an impact differs between profiles;
+- suggest questions or actions the user may consider;
+- translate or simplify wording.
+
+### AI must never
+
+- create an event, date, distance, stage or probability;
+- convert an approval into confirmed construction;
+- create a noise number when the calculation is absent;
+- hide missing evidence;
+- make the housing decision for the user.
+
+## 5. Shared data contract
+
+Keep the official record separate from the personalised assessment. One event can therefore be evaluated for different users without changing its facts.
+
+### `UrbanEvent`
+
+```json
+{
+  "id": "innerwest-da-2026-0123",
+  "event_type": "development",
+  "title": "Demolition and construction of a four-storey residential building",
+  "description": "Trimmed official description",
+  "location": {
+    "latitude": -33.9106,
+    "longitude": 151.1547,
+    "display_address": "Example Street, Marrickville NSW"
+  },
+  "stage": "approved_not_scheduled",
+  "official_dates": {
+    "lodged": "2026-05-14",
+    "determined": "2026-08-25",
+    "scheduled_start": null,
+    "scheduled_end": null
+  },
+  "activity_window": null,
+  "source": {
+    "name": "Inner West Council development register",
+    "record_id": "DA-2026-0123",
+    "url": "https://example.gov.au/official-record",
+    "retrieved_at": "2026-08-29T09:00:00+10:00"
+  },
+  "snapshot": {
+    "first_seen_at": "2026-08-29T09:00:00+10:00",
+    "last_seen_at": "2026-08-29T09:00:00+10:00",
+    "change": "new"
+  }
+}
+```
+
+Allowed values:
+
+- `event_type`: `development` or `roadwork`;
+- `stage`: `proposed`, `approved_not_scheduled`, `scheduled`, `active`, `completed`, `cancelled`, `unknown`;
+- `snapshot.change`: `new`, `changed`, `unchanged`, `removed`.
+
+Rules:
+
+- A planning approval with no official works schedule uses `approved_not_scheduled`.
+- Missing dates remain `null`; never fill them with a guessed date.
+- `first_seen_at` is when Ripple detected the record, not when the government issued it.
+- Keep the full official source link accessible from the interface.
+
+### `UserContext`
+
+```json
+{
+  "user_id": "demo-sarah",
+  "home": {
+    "label": "Home",
+    "latitude": -33.9110,
+    "longitude": 151.1550
+  },
+  "presence_profile": "away_weekdays",
+  "presence_windows": [
+    {
+      "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      "start": "00:00",
+      "end": "07:30"
+    },
+    {
+      "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      "start": "18:30",
+      "end": "23:59"
+    }
+  ],
+  "decision_context": {
+    "lease_renewal_date": "2026-10-29"
+  }
+}
+```
+
+Allowed demonstration profiles:
+
+- `away_weekdays`;
+- `home_weekdays`.
+
+The frontend may present friendly labels, but the backend receives explicit presence windows.
+
+### `ImpactAssessment`
+
+```json
+{
+  "event_id": "innerwest-da-2026-0123",
+  "user_id": "demo-sarah",
+  "calculated_at": "2026-08-29T09:00:02+10:00",
+  "distance": {
+    "metres": 180,
+    "method": "haversine"
+  },
+  "exposure": {
+    "ratio": null,
+    "band": "unknown",
+    "reason": "The record does not provide official construction hours."
+  },
+  "noise": {
+    "estimated_db_outdoors": null,
+    "range_db_outdoors": null,
+    "reason": "No verified equipment level or scheduled work activity is available."
+  },
+  "lease_overlap": {
+    "value": "unknown",
+    "reason": "The project is approved but has no official start date."
+  },
+  "relevance": {
+    "band": "medium",
+    "reasons": [
+      "The record is 180 metres from the saved home.",
+      "The project has been approved.",
+      "No construction schedule is currently published."
+    ]
+  },
+  "confidence": {
+    "level": "medium",
+    "known": [
+      "official project stage",
+      "project location",
+      "distance from the saved home"
+    ],
+    "estimated": [],
+    "unknown": [
+      "whether construction will proceed",
+      "construction start date",
+      "construction hours",
+      "equipment and barriers"
+    ]
+  },
+  "suggested_actions": [
+    "Open the official record.",
+    "Watch this project for a schedule or status change.",
+    "Ask the property manager whether they have received further information."
+  ]
+}
+```
+
+Important behaviour:
+
+- For an approved but unscheduled DA, Ripple may establish proximity and stage, but exposure, construction noise and lease overlap may remain unknown.
+- When a later scheduled record supplies activity dates/hours, those fields can be calculated.
+- The demo can still show personalisation by using a verified scheduled roadwork record or a development record with an official construction schedule. Do not fake schedule certainty merely to make the toggle move.
+
+## 6. API contract
+
+### `POST /api/demo/reset`
+
+Restores the previous snapshot and the default user profile so the demonstration can be replayed.
+
+Response:
+
+```json
+{ "ok": true, "snapshot": "previous", "profile": "away_weekdays" }
+```
+
+### `GET /api/dashboard`
+
+Returns the saved home, last checked time, watched projects and currently visible events.
+
+### `POST /api/refresh`
+
+Loads the current snapshot, compares it with the previous snapshot and returns changes.
+
+Response:
+
+```json
+{
+  "checked_at": "2026-08-29T09:00:00+10:00",
+  "changes": [
+    {
+      "change": "new",
+      "event": { "id": "innerwest-da-2026-0123" }
+    }
+  ]
+}
+```
+
+The real response contains the complete `UrbanEvent`; the abbreviated object above only illustrates the envelope.
+
+### `POST /api/impact`
+
+Request:
+
+```json
+{
+  "event_id": "innerwest-da-2026-0123",
+  "user_context": { "user_id": "demo-sarah" }
+}
+```
+
+Response: one complete `ImpactAssessment`.
+
+### `POST /api/explain`
+
+Optional. Accepts one `UrbanEvent` and one already computed `ImpactAssessment`. Returns wording only.
+
+```json
+{
+  "headline": "A newly approved project was detected 180 m from your home.",
+  "summary": "The project is approved, but no construction schedule has been published.",
+  "why_it_matters": "Ripple can confirm the project’s proximity, but it cannot yet confirm whether work will overlap your lease.",
+  "actions": [
+    "Review the official application.",
+    "Watch for a construction schedule."
+  ]
+}
+```
+
+Every number in the explanation must already exist in the input. If the model fails, the backend returns deterministic fallback wording.
+
+### `POST /api/watch`
+
+Stores `watched` or `muted` for the event in local JSON/SQLite state.
+
+## 7. Snapshot comparison rule
+
+Compare current and previous records using the stable event `id`.
+
+- current ID absent from previous → `new`;
+- same ID with a changed stage, official date or description hash → `changed`;
+- same ID with no watched-field change → `unchanged`;
+- previous ID absent from current → `removed`, not automatically `cancelled`.
+
+Never alert twice for the same unchanged record.
+
+## 8. Six required interface states
+
+1. **Enter an address** — prefilled hero address, no account required.
+2. **Checking** — show which public sources are being checked.
+3. **Calm dashboard** — home pin, last checked, no alarming empty state.
+4. **New change alert** — one sentence, distance, stage and source.
+5. **Impact detail** — known facts, possible effects, unknowns and available actions.
+6. **Updated personal impact** — show exactly which value changed after the presence toggle and why.
+
+Stage is shown inside the detail state. It is not a screen the user navigates through.
+
+## 9. Acceptance checks before implementation continues
+
+The team should answer **yes** to all of these:
+
+- Is the product called Ripple everywhere?
+- Does every builder use the same example JSON?
+- Can an approved DA remain explicitly unscheduled?
+- Are missing dates represented as `null`?
+- Are official facts separate from personalised calculations?
+- Can the interface show known, estimated and unknown information separately?
+- Can the complete demo run without an AI call?
+- Does switching profiles leave official event facts unchanged?
+- Does a second refresh avoid a duplicate alert?
+- Can the demo be reset with one action?
+
+Once these are agreed, freeze this contract for the hackathon. Additions go to a post-hackathon list instead of changing the schema mid-build.
