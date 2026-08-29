@@ -1,3 +1,9 @@
 fastapi
 requests
 pydantic
+pydantic-settings
+anthropic
+uvicorn[standard]
+httpx
+apscheduler        # background monitoring loop
+python-dotenv
