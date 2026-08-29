@@ -15,13 +15,17 @@ import {
 import type {
   Alert,
   ApiError,
+  AskResponse,
   Health,
   JourneyPreview,
+  MapFeatures,
+  ParkingSpot,
   Place,
   PlaceCreate,
   Routine,
   RoutineCreate,
   TravelMode,
+  Weather,
 } from "./types";
 
 const BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000") + "/api/v1";
@@ -125,6 +129,37 @@ export const api = {
     if (params.depart_at) search.set("depart_at", params.depart_at);
     if (params.mode) search.set("mode", params.mode);
     return request(`/journeys/preview?${search.toString()}`);
+  },
+
+  // Live-data endpoints. These hit real upstreams (Overpass, Open-Meteo) even
+  // in backend demo mode, so fixtures mode degrades honestly instead of
+  // faking map/weather data.
+  async mapFeatures(params: { lat: number; lng: number; radius_m?: number; kinds?: string[] }): Promise<MapFeatures> {
+    if (USE_FIXTURES) return { data: [], overpass_available: false, fetched_at: new Date().toISOString() };
+    const search = new URLSearchParams({ lat: String(params.lat), lng: String(params.lng) });
+    if (params.radius_m) search.set("radius_m", String(params.radius_m));
+    if (params.kinds?.length) search.set("kinds", params.kinds.join(","));
+    return request(`/map/features?${search.toString()}`);
+  },
+
+  async weather(lat: number, lng: number): Promise<Weather> {
+    if (USE_FIXTURES) throw new RequestError(503, "weather_unavailable", "Weather needs the backend running.");
+    return request(`/weather?lat=${lat}&lng=${lng}`);
+  },
+
+  async parking(params: { lat: number; lng: number; radius_m?: number }): Promise<{ data: ParkingSpot[]; fetched_at: string }> {
+    if (USE_FIXTURES) throw new RequestError(503, "parking_unavailable", "Parking search needs the backend running.");
+    const search = new URLSearchParams({ lat: String(params.lat), lng: String(params.lng) });
+    if (params.radius_m) search.set("radius_m", String(params.radius_m));
+    return request(`/parking?${search.toString()}`);
+  },
+
+  async ask(question: string, origin_id?: string, dest_id?: string): Promise<AskResponse> {
+    if (USE_FIXTURES) throw new RequestError(503, "ask_unavailable", "Ask AI needs the backend running.");
+    return request("/ask", {
+      method: "POST",
+      body: JSON.stringify({ question, origin_id: origin_id ?? null, dest_id: dest_id ?? null }),
+    });
   },
 
   async demoSeed(): Promise<{ places: number; routines: number }> {

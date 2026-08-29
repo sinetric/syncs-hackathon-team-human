@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import type { Weather } from "../api/types";
 import AlertCard from "../components/AlertCard";
-import { ErrorNote, Skeleton, useFetch } from "../components/common";
+import { ErrorNote, Skeleton, relativeTime, useFetch } from "../components/common";
 
 interface Props {
   goJourney: () => void;
@@ -12,6 +13,15 @@ export default function Today({ goJourney, goPlaces }: Props) {
   const [seeding, setSeeding] = useState(false);
   const alerts = useFetch(() => api.listAlerts({ window_mins: 180 }));
   const routines = useFetch(() => api.listRoutines());
+  const places = useFetch(() => api.listPlaces());
+  const [weather, setWeather] = useState<Weather | null>(null);
+
+  // live weather for the first saved place — a quiet strip, not a widget wall
+  useEffect(() => {
+    const place = (places.data ?? [])[0];
+    if (!place) return;
+    api.weather(place.lat, place.lng).then(setWeather).catch(() => setWeather(null));
+  }, [places.data]);
 
   const seedDemo = async () => {
     setSeeding(true);
@@ -63,6 +73,20 @@ export default function Today({ goJourney, goPlaces }: Props) {
 
   return (
     <div className="space-y-3">
+      {weather && (
+        <p className="flex items-baseline justify-between px-1 text-sm">
+          <span>
+            {weather.derived.raining_now ? "🌧️" : "🌤️"} {weather.observed.conditions},{" "}
+            {weather.observed.temperature_c}°C
+            {weather.derived.max_rain_probability_12h_pct != null &&
+              weather.derived.max_rain_probability_12h_pct >= 40 &&
+              ` · rain ${weather.derived.max_rain_probability_12h_pct}% later`}
+          </span>
+          <span className="text-xs text-ink-soft">
+            Open-Meteo · {relativeTime(weather.source.fetched_at)}
+          </span>
+        </p>
+      )}
       <p className="px-1 text-sm text-ink-soft">
         {list.length} heads-up{list.length === 1 ? "" : "s"} for the next 3 hours
       </p>

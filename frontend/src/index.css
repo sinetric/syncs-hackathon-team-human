@@ -1,6 +1,34 @@
 @import "@fontsource-variable/bricolage-grotesque";
 @import "@fontsource-variable/inter";
+@import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
+
+/* emoji marker pins for the feature map */
+.ka-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-card);
+  border: 2px solid var(--color-line);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  font-size: 15px;
+  line-height: 1;
+}
+.ka-pin--act { border-color: var(--color-act); border-width: 3px; }
+.ka-pin--watch { border-color: var(--color-watch); }
+.ka-pin--origin, .ka-pin--dest {
+  background: var(--color-pine);
+  border-color: var(--color-pine);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.ka-pin--dest { background: var(--color-ink); border-color: var(--color-ink); }
+.leaflet-popup-content { margin: 10px 12px; font-family: var(--font-body); }
+.leaflet-popup-content-wrapper { border-radius: 14px; }
 
 @theme {
   /* paper with a cool green-grey cast; ink is deep olive-charcoal */

@@ -6,6 +6,24 @@ before you left."** Saved places and routines in, ranked heads-up alerts out:
 transport disruptions, roadworks, rain, construction near home — plus a
 leave-now reminder computed from your routine and the live delay.
 
+On top of the alert feed sit four live-data surfaces:
+
+- **Map** — real OpenStreetMap objects (parking, construction, roadworks,
+  event venues via Overpass) merged with the alert engine's geo events, with
+  per-type icons, filters, a legend, a radius selector, and 60-second refresh.
+- **Journey map** — origin/destination markers, a dashed visual connection
+  (deliberately not a navigation route), obstacles near the corridor, live
+  weather at the destination, and nearby parking with an *estimated* parking
+  probability (heuristic, labelled — no live occupancy source exists).
+- **Live weather** — Open-Meteo, fetched live even in demo mode, feeding the
+  alert engine, journey checklist and AI answers; observed values and derived
+  interpretations are kept strictly separate.
+- **Ask AI** — questions answered from the app's own live context (alerts,
+  weather, journey, parking) by Qwen — hosted via Hugging Face when
+  `HF_TOKEN` is set, local `transformers` Qwen when `USE_LLM=1` — with a
+  clearly-labelled rule-based fallback when no model is available. Every
+  answer lists the factors behind it and which engine produced it.
+
 Frontend (React + Vite + TS + Tailwind) and backend (FastAPI) talk only
 through [docs/api-contract.md](docs/api-contract.md).
 
@@ -45,6 +63,8 @@ in `frontend/.env` and the UI renders from local fixtures with no backend.
 |---|---|---|---|
 | `DEMO_MODE` | backend | `true` | fixtures instead of live sources |
 | `TFNSW_API_KEY` | backend | — | required only when `DEMO_MODE=false`; free at [opendata.transport.nsw.gov.au](https://opendata.transport.nsw.gov.au) |
+| `HF_TOKEN` | backend | — | optional; enables hosted Qwen for Ask AI ([huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)), server-side only |
+| `USE_LLM` | backend | `0` | `1` runs Ask AI on the local transformers Qwen (needs `pip install transformers torch`; minutes per answer on CPU) |
 | `SOURCE_CACHE_TTL_S` | backend | `120` | per-source raw-response cache |
 | `CORRIDOR_RADIUS_M` | backend | `800` | route-corridor match radius |
 | `CORS_ORIGINS` | backend | `*` | comma-separated origins |
@@ -70,15 +90,22 @@ backend/
     adapters/          TfNSW, Live Traffic NSW, Open-Meteo, NSW Planning —
                        one file each, all emitting a normalised SourceEvent;
                        a dead source degrades to empty, never a 500
+  services/            live-data services: overpass (OSM, 4-mirror fallback),
+                       weather (Open-Meteo, live even in demo mode), parking
+                       (OSM + labelled probability heuristic), ai (Qwen with
+                       HF-API -> local -> rules engine layering)
   journeys.py          legs, Opal fare-band estimate, checklist rules
   fixtures/            demo-mode data
 frontend/
   src/api/             typed client + contract types + offline fixtures
-  src/screens/         Today / Journey / Places / More
+  src/components/      FeatureMap (Leaflet + emoji pins + popup cards), cards
+  src/screens/         Today / Map / Journey / Ask / Places
 ```
 
 Known v1 limits (deliberate): the corridor matcher samples the straight line
 between origin and destination rather than real route geometry; fares are a
 static Opal band table labelled as estimates; the demo transit itinerary is a
-fixture. The NSW Planning live API needs an emailed subscription key, so both
-modes currently read seed data for that source.
+fixture; parking probability is a heuristic (no live occupancy feed exists);
+OSM shows mapped objects, not live traffic. The NSW Planning live API needs
+an emailed subscription key, so both modes currently read seed data for that
+source. Every estimate is labelled as one in the API and the UI.
