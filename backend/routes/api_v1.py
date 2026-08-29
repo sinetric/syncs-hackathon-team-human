@@ -11,9 +11,17 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, Response
 
+from pydantic import BaseModel, Field
+
 from config import APP_VERSION, DEMO_MODE
 from alerts import build_alerts
+from geo import haversine_m
 from journeys import build_preview
+from models import Severity
+from services import ai as ai_service
+from services.overpass import ALL_KINDS, fetch_features
+from services.parking import find_parking
+from services.weather import get_weather
 from models import (
     Place,
     PlaceCreate,
@@ -141,6 +149,94 @@ def journey_preview(
             raise _err(422, "bad_depart_at", "depart_at must be an ISO 8601 datetime.")
     preview = build_preview(origin, dest, when, mode)
     return preview.model_dump(mode="json", by_alias=True)
+
+
+# ----------------------------------------------------------- map / live data
+
+
+@router.get("/map/features")
+def map_features(
+    lat: float = Query(ge=-90, le=90),
+    lng: float = Query(ge=-180, le=180),
+    radius_m: int = Query(default=1500, ge=200, le=5000),
+    kinds: str | None = Query(default=None, description="csv of feature kinds"),
+):
+    """Real mapped objects (OSM via Overpass) merged with the alert engine's
+    geo-located events, for the interactive map."""
+    kind_list = [k.strip() for k in kinds.split(",")] if kinds else None
+    osm_kinds = [k for k in (kind_list or ALL_KINDS) if k in ALL_KINDS]
+    features, overpass_ok = fetch_features(lat, lng, radius_m, osm_kinds)
+
+    alert_features = []
+    for alert in build_alerts(window_mins=720):
+        if alert.geo is None:
+            continue
+        if haversine_m(lat, lng, alert.geo.lat, alert.geo.lng) > radius_m:
+            continue
+        if kind_list and alert.kind.value not in kind_list:
+            continue
+        alert_features.append(
+            {
+                "id": alert.id,
+                "kind": alert.kind.value,
+                "name": alert.title,
+                "lat": alert.geo.lat,
+                "lng": alert.geo.lng,
+                "tags": {},
+                "alert": alert.model_dump(mode="json"),
+                "source": alert.source.model_dump(mode="json"),
+            }
+        )
+
+    return {
+        "data": alert_features + features,
+        "overpass_available": overpass_ok,
+        "fetched_at": now_syd().isoformat(),
+    }
+
+
+@router.get("/weather")
+def weather(
+    lat: float = Query(ge=-90, le=90),
+    lng: float = Query(ge=-180, le=180),
+):
+    result, available = get_weather(lat, lng)
+    if not available:
+        raise _err(503, "weather_unavailable", "Open-Meteo could not be reached.")
+    return result
+
+
+@router.get("/parking")
+def parking(
+    lat: float = Query(ge=-90, le=90),
+    lng: float = Query(ge=-180, le=180),
+    radius_m: int = Query(default=1200, ge=200, le=5000),
+):
+    weather_data, weather_ok = get_weather(lat, lng)
+    raining = bool(weather_data["derived"]["raining_now"]) if weather_ok else False
+    event_count = sum(
+        1 for a in build_alerts(window_mins=360)
+        if a.severity != Severity.info and a.geo is not None
+        and haversine_m(lat, lng, a.geo.lat, a.geo.lng) <= radius_m + 1000
+    )
+    spots, available = find_parking(lat, lng, radius_m, now_syd(), event_count, raining)
+    if not available:
+        raise _err(503, "parking_unavailable", "OpenStreetMap (Overpass) could not be reached.")
+    return {"data": spots, "fetched_at": now_syd().isoformat()}
+
+
+# ------------------------------------------------------------------- ask AI
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=2, max_length=500)
+    origin_id: str | None = None
+    dest_id: str | None = None
+
+
+@router.post("/ask")
+def ask_ai(payload: AskRequest):
+    return ai_service.ask(payload.question, payload.origin_id, payload.dest_id)
 
 
 # ---------------------------------------------------------------------- demo

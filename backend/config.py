@@ -66,6 +66,16 @@ CORRIDOR_RADIUS_M = int(os.environ.get("CORRIDOR_RADIUS_M", "800"))
 # Upstream API keys — only required when DEMO_MODE=false.
 TFNSW_API_KEY = os.environ.get("TFNSW_API_KEY", "")
 
+# ---------------------------------------------------------------------------
+# Ask-AI engine (services/ai.py) — server-side only, never sent to the client
+# ---------------------------------------------------------------------------
+
+# Optional Hugging Face token: enables the hosted Qwen chat model. Without it
+# the service tries the local transformers Qwen, then falls back to a clearly
+# labelled rule-based summary of the live data.
+HF_TOKEN = os.environ.get("HF_TOKEN", "")
+HF_CHAT_MODEL = os.environ.get("HF_CHAT_MODEL", "Qwen/Qwen2.5-7B-Instruct")
+
 REQUIRED_LIVE_KEYS = {
     "TFNSW_API_KEY": "Transport for NSW Open Data (https://opendata.transport.nsw.gov.au)",
 }

@@ -123,6 +123,47 @@ def test_journey_preview():
     assert missing.json()["error"]["code"] == "place_not_found"
 
 
+def test_map_weather_parking_shapes():
+    """Live-data endpoints must keep their shape whether or not the network
+    is up — availability is signalled, never crashed on."""
+    client.post("/api/v1/demo/seed")
+    m = client.get("/api/v1/map/features", params={"lat": -33.9110, "lng": 151.1554, "radius_m": 1000})
+    assert m.status_code == 200
+    body = m.json()
+    assert isinstance(body["data"], list) and isinstance(body["overpass_available"], bool)
+    for f in body["data"]:
+        assert {"id", "kind", "name", "lat", "lng", "source"} <= set(f)
+
+    w = client.get("/api/v1/weather", params={"lat": -33.9110, "lng": 151.1554})
+    assert w.status_code in (200, 503)
+    if w.status_code == 200:
+        assert {"observed", "derived", "source"} <= set(w.json())
+    else:
+        assert w.json()["error"]["code"] == "weather_unavailable"
+
+    p = client.get("/api/v1/parking", params={"lat": -33.8836, "lng": 151.1997})
+    assert p.status_code in (200, 503)
+    if p.status_code == 200:
+        for spot in p.json()["data"]:
+            prob = spot["probability"]
+            assert 0 <= prob["value_pct"] <= 100
+            assert "estimate" in prob["basis"]
+
+
+def test_ask():
+    client.post("/api/v1/demo/seed")
+    r = client.post("/api/v1/ask", json={"question": "What could affect my journey?"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["answer"]
+    assert body["engine"] in ("huggingface_api", "local_qwen", "rules")
+    assert isinstance(body["factors"], list)
+    assert "disclaimer" in body and "context_used" in body
+
+    bad = client.post("/api/v1/ask", json={"question": ""})
+    assert bad.status_code == 422
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):
