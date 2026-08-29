@@ -1,0 +1,15 @@
+{
+  "DA-2026-00042": {
+    "id": "DA-2026-00042",
+    "type": "development",
+    "title": "Mixed-use residential development \u2014 8 storeys",
+    "description": "Demolition of existing structure and construction of an 8-storey mixed-use building with basement parking.",
+    "latitude": -33.8845,
+    "longitude": 151.2005,
+    "start_date": "2026-08-29",
+    "end_date": "2028-02-20",
+    "source": "nsw_planning_portal_seed",
+    "status": "approved",
+    "last_updated": "2026-08-29T17:13:15.423039"
+  }
+}
