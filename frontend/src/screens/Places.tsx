@@ -18,6 +18,7 @@ export default function Places() {
   const places = useFetch(() => api.listPlaces());
   const routines = useFetch(() => api.listRoutines());
   const [busy, setBusy] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // add-place form
@@ -44,6 +45,36 @@ export default function Places() {
     } finally {
       setBusy(false);
     }
+  };
+
+  // Save the device's current position as a place. No street address is
+  // available client-side, so we label it plainly and store the coordinates.
+  const addCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setFormError("Location access isn't available in this browser.");
+      return;
+    }
+    setLocating(true);
+    setFormError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocating(false);
+        void run(() =>
+          api.createPlace({
+            label: "Current location",
+            address: `Near ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            lat: latitude,
+            lng: longitude,
+          }),
+        );
+      },
+      () => {
+        setLocating(false);
+        setFormError("Location access was blocked. Enter an address instead.");
+      },
+      { timeout: 5000, maximumAge: 300_000 },
+    );
   };
 
   const addPlace = () =>
@@ -105,6 +136,15 @@ export default function Places() {
 
         <div className="mt-3 rounded-2xl border border-line bg-card p-4">
           <div className="flex flex-wrap gap-2">
+            {!placeList.some((p) => p.label === "Current location") && (
+              <button
+                onClick={addCurrentLocation}
+                disabled={busy || locating}
+                className="min-h-10 rounded-xl bg-pine-soft px-3 py-1.5 text-sm font-medium text-pine"
+              >
+                {locating ? "Locating…" : "◎ Current location"}
+              </button>
+            )}
             {PRESETS.filter((preset) => !placeList.some((p) => p.label === preset.label)).map((preset) => (
               <button
                 key={preset.label}

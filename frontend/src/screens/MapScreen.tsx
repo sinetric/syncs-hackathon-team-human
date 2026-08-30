@@ -28,20 +28,44 @@ export default function MapScreen() {
   const [heroProgress, setHeroProgress] = useState(0);
   const storyRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const lastPlacesSyncRef = useRef(0);
+  const initRef = useRef(false);
+
+  const locateMe = useCallback((opts?: { silent?: boolean }) => {
+    const fallback = () => { setCenter(SYDNEY_CBD); setCenterLabel("Sydney CBD"); };
+    if (!navigator.geolocation) {
+      if (opts?.silent) fallback();
+      else setError("Location access isn't available in this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setPlaceId("");
+        setCenter([position.coords.latitude, position.coords.longitude]);
+        setCenterLabel("your current location");
+      },
+      () => {
+        if (opts?.silent) fallback();
+        else setError("Location access was blocked. Choose a saved address instead.");
+      },
+      { timeout: 5000, maximumAge: 300_000 },
+    );
+  }, []);
 
   useEffect(() => {
-    if (center) return;
+    if (center || initRef.current) return;
     const data = places.data;
     if (data && data.length > 0) {
+      initRef.current = true;
       const home = data.find((place) => /home/i.test(place.label)) ?? data[0];
       setCenter([home.lat, home.lng]);
       setCenterLabel(home.label);
       setPlaceId(home.id);
     } else if (!places.loading) {
-      setCenter(SYDNEY_CBD);
-      setCenterLabel("Sydney CBD");
+      initRef.current = true;      // no saved places → start from the device location
+      locateMe({ silent: true });
     }
-  }, [places.data, places.loading, center]);
+  }, [places.data, places.loading, center, locateMe]);
 
   const load = useCallback(async (nextCenter: [number, number], radius: number) => {
     setLoading(true);
@@ -100,17 +124,13 @@ export default function MapScreen() {
     return () => observer.disconnect();
   }, [visible]);
 
-  const useMyLocation = () => {
-    if (!navigator.geolocation) return setError("Location access isn't available in this browser.");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setPlaceId("");
-        setCenter([position.coords.latitude, position.coords.longitude]);
-        setCenterLabel("your current location");
-      },
-      () => setError("Location access was blocked. Choose a saved address instead."),
-      { timeout: 5000, maximumAge: 300_000 },
-    );
+  // Re-check saved Places when the "Map around" dropdown is opened, so a place
+  // added on another screen shows up without a page refresh. Guarded so a single
+  // click (mousedown + focus) doesn't fire two requests.
+  const syncPlaces = () => {
+    if (places.loading || Date.now() - lastPlacesSyncRef.current < 500) return;
+    lastPlacesSyncRef.current = Date.now();
+    places.reload();
   };
 
   if (!center) return <Skeleton lines={3} />;
@@ -124,6 +144,8 @@ export default function MapScreen() {
             Map around
             <select
               value={placeId}
+              onMouseDown={syncPlaces}
+              onFocus={syncPlaces}
               onChange={(event) => {
                 const place = (places.data ?? []).find((item) => item.id === event.target.value);
                 if (!place) return;
@@ -143,7 +165,7 @@ export default function MapScreen() {
             </select>
           </label>
         </div>
-        <button onClick={useMyLocation} className="mt-2 min-h-9 rounded-lg px-2 text-xs font-medium text-pine">◎ Use my current location</button>
+        <button onClick={() => locateMe()} className="mt-2 min-h-9 rounded-lg px-2 text-xs font-medium text-pine">◎ Use my current location</button>
       </div>
 
       {error ? <ErrorNote message={error} onRetry={() => load(center, radiusM)} /> : (
